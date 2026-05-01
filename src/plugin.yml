@@ -1,8 +1,9 @@
-name:  Oneblock
+name:  EventBlock
 main:  oneblock.Oneblock
-version:  1.5.3
+version:  0.0.1
 api-version: 1.13
-author:  MrMarL
+author:  shaches
+website: https://github.com/shaches/EventBlock
 loadbefore: ['Multiverse-Core']
 softdepend: ['PlaceholderAPI', 'WorldGuard', 'ItemsAdder', 'Oraxen', 'Nexo', 'CraftEngine']
 

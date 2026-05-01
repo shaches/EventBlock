@@ -1,14 +1,24 @@
-# Contributing to OneBlock
+# Contributing to EventBlock
 
-Thanks for your interest in improving OneBlock. This document explains the
+Thanks for your interest in improving EventBlock. This document explains the
 project layout, local tooling, test expectations and static-analysis gates
 that every contribution is expected to pass before merge.
+
+## License
+
+EventBlock is licensed under the GNU Affero General Public License v3.0 (AGPLv3).
+All contributions must be compatible with this license. By submitting a pull request,
+you agree that your contribution is licensed under AGPLv3.
+
+The original OneBlock codebase by MrMarL was licensed under MIT. That original
+copyright and license text are preserved in `LICENSE-upstream`. All modifications
+and the independent EventBlock distribution are under AGPLv3.
 
 ## Project layout
 
 ```
 src/
-  plugin.yml                Bukkit descriptor (name: Oneblock, main: oneblock.Oneblock)
+  plugin.yml                Bukkit descriptor (name: EventBlock, main: oneblock.Oneblock)
   config.yml blocks.yml ... Shipped resources copied into the jar verbatim
   oneblock/                 Main Java source tree (package `oneblock`)
     command/                Subcommand interface, router context, /ob arg parsing
@@ -54,7 +64,7 @@ point to a JDK 21 install, but Maven should be invoked via the script under
 # Compile only, no tests
 .\resources\apache-maven-3.9.15\bin\mvn.cmd -B -q -DskipTests compile
 
-# Produce the shaded plugin jar (target/Oneblock-<version>.jar)
+# Produce the shaded plugin jar (target/EventBlock-<version>.jar)
 .\resources\apache-maven-3.9.15\bin\mvn.cmd -B -DskipTests clean package
 
 # Full verify (tests + shade + static-analysis gates once Phase 7 lands)
@@ -110,19 +120,19 @@ static field on `Oneblock`, `Level`, `Guest`, or `Invitation`.
 
 ### Async-scheduler threads (`runTaskTimerAsynchronously`)
 
-- `oneblock.tasks.PlayerCacheRefreshTask` &rarr; reads `Oneblock.getWor()`; writes `PlayerCache`
+- `oneblock.tasks.PlayerCacheRefreshTask` → reads `Oneblock.getWor()`; writes `PlayerCache`
   (volatile `ConcurrentHashMap`; safe).
-- `oneblock.tasks.PlayerDataSaveTask` &rarr; delegates to `Oneblock.saveData()`
+- `oneblock.tasks.PlayerDataSaveTask` → delegates to `Oneblock.saveData()`
   which snapshots `PlayerInfo.list` (`CopyOnWriteArrayList`; safe) and
   calls either `DatabaseManager.save` (HikariCP; safe) or
   `JsonPlayerDataStore.write` (file-local, no shared state; safe).
-- `oneblock.tasks.IslandParticleTask` &rarr; reads `PlayerCache` (safe) and
+- `oneblock.tasks.IslandParticleTask` → reads `PlayerCache` (safe) and
   computes the per-player particle locations on the async thread, then
   hands the resulting list to `Bukkit.getScheduler().runTask(...)` so
   every `World.spawnParticle` call happens on the main thread (Phase
   4.3). `collectSpawns(...)` is exposed package-private and exercised by
   `IslandParticleTaskTest`.
-- `oneblock.tasks.WorldInitTask` &rarr; reads `Oneblock.config`, swaps
+- `oneblock.tasks.WorldInitTask` → reads `Oneblock.config`, swaps
   `Oneblock.ORIGIN` via `updateOriginWorld` (atomic) and writes
   `Oneblock.leavewor` (volatile).
 - `oneblock.tasks.IslandBlockGenTask` runs on the **main** thread
@@ -134,12 +144,12 @@ static field on `Oneblock`, `Level`, `Guest`, or `Invitation`.
 ### Already thread-safe
 
 - `PlayerInfo.list` (`CopyOnWriteArrayList`).
-- `PlayerInfo.uuids` (`CopyOnWriteArrayList`; Phase 4.4 &mdash; main-thread
+- `PlayerInfo.uuids` (`CopyOnWriteArrayList`; Phase 4.4 — main-thread
   invitee mutations vs. async `PlayerDataSaveTask` iteration).
 - `PlayerInfo.UUID_INDEX` (`ConcurrentHashMap`).
 - `PlayerInfo.TOP_VERSION` (`AtomicLong`).
 - `Guest.list` and `Invitation.list` (`CopyOnWriteArrayList`; Phase 4.2).
-- `Level.levels` (`private static volatile List<Level>`; Phase 4.1 &mdash;
+- `Level.levels` (`private static volatile List<Level>`; Phase 4.1 —
   publication-safe immutable swap. Mutate only via `Level.replaceAll`,
   read either via `Level.get(int)` / `Level.size()` or by capturing
   `Level.snapshot()` once at the top of an iteration).
@@ -147,7 +157,7 @@ static field on `Oneblock`, `Level`, `Guest`, or `Invitation`.
 - `Oneblock.topCache` / `topCacheVersion` (`volatile` + immutable snapshot).
 - `PlayerCache.players` (`volatile` + `ConcurrentHashMap`).
 - `Oneblock.ORIGIN` (`AtomicReference<IslandOrigin>`; single-swap writes via
-  `updateAndGet`, readers snapshot via `Oneblock.origin()` &mdash; see
+  `updateAndGet`, readers snapshot via `Oneblock.origin()` — see
   `IslandOriginTest` and `OneblockOriginConcurrencyTest`).
 - `Oneblock.leavewor`, `Oneblock.config`, and every admin-flag field on
   `oneblock.config.Settings` (`circleMode`, `useEmptyIslands`,
@@ -220,35 +230,35 @@ Phase 4 retires the four entries that the pre-Phase-4 "Known races"
 section used to call out. Every entry below has a regression test that
 fails (CME or torn read) if reverted:
 
-- **4.1 &mdash; `Level.levels` publication-safe.** The field was a public
+- **4.1 — `Level.levels` publication-safe.** The field was a public
   mutable `ArrayList` that `ConfigManager.loadBlocks` would
   `clear()`-then-refill on every `/ob reload`, while the async
   `IslandBlockGenTask` could be mid-iteration via `Level.get(int)`. It
   is now a `private static volatile List<Level>` initialised to
   `Collections.emptyList()`. `ConfigManager.loadBlocks` parses into a
   local `ArrayList` and only calls `Level.replaceAll(...)` after the
-  whole file is parsed without throwing &mdash; readers either see the old
+  whole file is parsed without throwing — readers either see the old
   list or the complete new one, never a half-populated one. Covered by
   `LevelPublicationTest` (3 tests).
-- **4.2 &mdash; `Guest.list` + `Invitation.list` &rarr; `CopyOnWriteArrayList`.**
+- **4.2 — `Guest.list` + `Invitation.list` → `CopyOnWriteArrayList`.**
   Both lists are mutated from the main thread (`/ob invite`,
   `/ob accept`, the `runTaskLater` TTL cleanup) and iterated from the
   same thread by `IslandBlockGenTask.run` and `Guest.check` /
   `Invitation.check`. They were previously `ArrayList` and would CME
   the moment any future handler mutated them off-thread. Covered by
   `GuestInvitationConcurrencyTest` (4 tests).
-- **4.3 &mdash; `IslandParticleTask.spawnParticle` on the main thread.** The
+- **4.3 — `IslandParticleTask.spawnParticle` on the main thread.** The
   task ran via `runTaskTimerAsynchronously` and called
-  `World.spawnParticle` directly &mdash; main-thread-only on Paper /
+  `World.spawnParticle` directly — main-thread-only on Paper /
   Folia / most server forks, undefined behaviour on the rest. The
   task now collects per-player particle locations on the async tick
   via `collectSpawns(...)` (a pure helper, package-private for
   testability), then hops back to the main thread via
   `Bukkit.getScheduler().runTask(plugin, () -> ...)` to fire the
   particles. Covered by `IslandParticleTaskTest` (4 tests).
-- **4.4 &mdash; `PlayerInfo.uuids` &rarr; `CopyOnWriteArrayList`.** The per-island
+- **4.4 — `PlayerInfo.uuids` → `CopyOnWriteArrayList`.** The per-island
   invitee/co-owner list was iterated by the async `PlayerDataSaveTask`
-  &mdash; via `JsonPlayerDataStore.write` and `DatabaseManager.save` &mdash;
+  — via `JsonPlayerDataStore.write` and `DatabaseManager.save` —
   every 6 000 ticks, while the main thread can concurrently call
   `addInvite` / `removeInvite` / `removeUUID`. An unlucky overlap
   threw `ConcurrentModificationException` out of the save loop and
