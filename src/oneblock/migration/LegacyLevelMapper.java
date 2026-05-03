@@ -97,12 +97,4 @@ public final class LegacyLevelMapper {
     // Registry not yet populated (e.g. early test / startup) — trust the convention.
     return convention;
   }
-
-  private static String firstRegisteredId() {
-    LevelRegistry.Snapshot snap = LevelRegistry.snapshot();
-    if (snap.size() > 0) {
-      return snap.allOrdered().get(0).id;
-    }
-    return "level_0";
-  }
 }
