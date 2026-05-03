@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import oneblock.ChestItems;
+import oneblock.LevelRegistry;
 import oneblock.Messages;
 import oneblock.PlayerInfo;
 import oneblock.worldguard.OBWorldGuard;
@@ -74,7 +75,7 @@ public class GUI {
         setMeta(
             XMaterial.NETHERITE_BLOCK,
             ChatColor.GOLD + "1st - " + parseUUID(inf.uuid),
-            inf.lvl,
+            getLevelDisplay(inf),
             parseUUIDs(inf.uuids)));
     inf = oneblock.Oneblock.getTop(1, toplist);
     topGUI.setItem(
@@ -82,7 +83,7 @@ public class GUI {
         setMeta(
             XMaterial.DIAMOND_BLOCK,
             ChatColor.GRAY + "2nd - " + parseUUID(inf.uuid),
-            inf.lvl,
+            getLevelDisplay(inf),
             parseUUIDs(inf.uuids)));
     inf = oneblock.Oneblock.getTop(2, toplist);
     topGUI.setItem(
@@ -90,7 +91,7 @@ public class GUI {
         setMeta(
             XMaterial.IRON_BLOCK,
             ChatColor.GRAY + "3rd - " + parseUUID(inf.uuid),
-            inf.lvl,
+            getLevelDisplay(inf),
             parseUUIDs(inf.uuids)));
     inf = oneblock.Oneblock.getTop(3, toplist);
     topGUI.setItem(
@@ -98,7 +99,7 @@ public class GUI {
         setMeta(
             XMaterial.GOLD_BLOCK,
             ChatColor.DARK_RED + "4th - " + parseUUID(inf.uuid),
-            inf.lvl,
+            getLevelDisplay(inf),
             parseUUIDs(inf.uuids)));
     inf = oneblock.Oneblock.getTop(4, toplist);
     topGUI.setItem(
@@ -106,7 +107,7 @@ public class GUI {
         setMeta(
             XMaterial.COPPER_BLOCK,
             ChatColor.DARK_RED + "5th - " + parseUUID(inf.uuid),
-            inf.lvl,
+            getLevelDisplay(inf),
             parseUUIDs(inf.uuids)));
     inf = oneblock.Oneblock.getTop(5, toplist);
     topGUI.setItem(
@@ -114,9 +115,14 @@ public class GUI {
         setMeta(
             XMaterial.COAL_BLOCK,
             ChatColor.DARK_RED + "6th - " + parseUUID(inf.uuid),
-            inf.lvl,
+            getLevelDisplay(inf),
             parseUUIDs(inf.uuids)));
     p.openInventory(topGUI);
+  }
+
+  private static int getLevelDisplay(PlayerInfo inf) {
+    int idx = LevelRegistry.getIndex(inf.currentLevelId);
+    return idx >= 0 ? idx : inf.lvl;
   }
 
   public static void visitGUI(Player p, OfflinePlayer[] offlinePlayers) {

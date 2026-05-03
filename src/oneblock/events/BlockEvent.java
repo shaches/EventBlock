@@ -64,13 +64,14 @@ public class BlockEvent implements Listener {
     final int result[] = Oneblock.plugin.getIslandCoordinates(plID);
     if (block.getX() != result[0]) return;
     if (block.getZ() != result[1]) return;
+    final org.bukkit.Material brokenType = block.getType();
 
     Bukkit.getScheduler()
         .runTaskLater(
             Oneblock.plugin,
             () -> {
               try {
-                Oneblock.plugin.generateBlock(result[0], result[1], plID, ponl, block);
+                Oneblock.plugin.generateBlock(result[0], result[1], plID, ponl, block, brokenType);
               } catch (Throwable t) {
                 Bukkit.getLogger()
                     .warning(

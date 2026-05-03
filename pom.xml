@@ -4,7 +4,7 @@
 	<artifactId>EventBlock</artifactId>
 	<version>0.0.1</version>
 	<name>EventBlock</name>
-	<description>EventBlock – independent OneBlock minigame plugin</description>
+	<description>EventBlock – Event driven OneBlock minigame plugin</description>
 	<url>https://github.com/shaches/EventBlock</url>
 
 	<licenses>

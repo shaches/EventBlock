@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
+import oneblock.Level;
+import oneblock.LevelRegistry;
 import oneblock.Oneblock;
 import oneblock.PlayerInfo;
 import oneblock.utils.Utils;
@@ -70,6 +72,14 @@ class JsonPlayerDataStoreTest {
     // Force class init NOW, while plugin is set, so the static-final
     // 'f' resolves to <tempDir>/PlData.json.
     Class.forName("oneblock.storage.JsonPlayerDataStore");
+
+    // Initialize LevelRegistry with test levels to prevent level mapping issues
+    ArrayList<Level> testLevels = new ArrayList<>();
+    for (int i = 0; i <= 23; i++) {
+      Level lvl = new Level("level_" + i, "Test Level " + i);
+      testLevels.add(lvl);
+    }
+    LevelRegistry.replaceAll(testLevels);
   }
 
   @AfterAll
@@ -110,6 +120,7 @@ class JsonPlayerDataStoreTest {
     PlayerInfo p = new PlayerInfo(owner);
     p.lvl = 5;
     p.breaks = 12;
+    p.currentLevelId = "level_5";
 
     JsonPlayerDataStore.write(Collections.singletonList(p));
     List<PlayerInfo> read = JsonPlayerDataStore.read();
@@ -178,12 +189,9 @@ class JsonPlayerDataStoreTest {
     UUID a = UUID.randomUUID();
     UUID b = UUID.randomUUID();
     UUID c = UUID.randomUUID();
-    PlayerInfo pa = new PlayerInfo(a);
-    pa.lvl = 1;
-    PlayerInfo pb = new PlayerInfo(b);
-    pb.lvl = 2;
-    PlayerInfo pc = new PlayerInfo(c);
-    pc.lvl = 3;
+    PlayerInfo pa = new PlayerInfo(a); pa.lvl = 1; pa.currentLevelId = "level_1";
+    PlayerInfo pb = new PlayerInfo(b); pb.lvl = 2; pb.currentLevelId = "level_2";
+    PlayerInfo pc = new PlayerInfo(c); pc.lvl = 3; pc.currentLevelId = "level_3";
 
     JsonPlayerDataStore.write(Arrays.asList(pa, pb, pc));
     List<PlayerInfo> read = JsonPlayerDataStore.read();

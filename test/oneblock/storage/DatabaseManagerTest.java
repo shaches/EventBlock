@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 
+import oneblock.Level;
+import oneblock.LevelRegistry;
 import oneblock.Oneblock;
 import oneblock.PlayerInfo;
 
@@ -94,6 +96,14 @@ class DatabaseManagerTest {
         savedPassword = DatabaseManager.password;
         savedUseSSL = DatabaseManager.useSSL;
         savedAutoReconnect = DatabaseManager.autoReconnect;
+
+        // Initialize LevelRegistry with test levels to prevent level mapping issues
+        ArrayList<Level> testLevels = new ArrayList<>();
+        for (int i = 0; i <= 23; i++) {
+            Level lvl = new Level("level_" + i, "Test Level " + i);
+            testLevels.add(lvl);
+        }
+        LevelRegistry.replaceAll(testLevels);
     }
 
     @AfterAll
@@ -213,6 +223,7 @@ class DatabaseManagerTest {
         PlayerInfo p = new PlayerInfo(owner);
         p.lvl = 7;
         p.breaks = 23;
+        p.currentLevelId = "level_7";
 
         boolean saved = DatabaseManager.save(Collections.singletonList(p));
         assertThat(saved).isTrue();
@@ -285,9 +296,9 @@ class DatabaseManagerTest {
         UUID a = UUID.randomUUID();
         UUID b = UUID.randomUUID();
         UUID c = UUID.randomUUID();
-        PlayerInfo pa = new PlayerInfo(a); pa.lvl = 1;
-        PlayerInfo pb = new PlayerInfo(b); pb.lvl = 2;
-        PlayerInfo pc = new PlayerInfo(c); pc.lvl = 3;
+        PlayerInfo pa = new PlayerInfo(a); pa.lvl = 1; pa.currentLevelId = "level_1";
+        PlayerInfo pb = new PlayerInfo(b); pb.lvl = 2; pb.currentLevelId = "level_2";
+        PlayerInfo pc = new PlayerInfo(c); pc.lvl = 3; pc.currentLevelId = "level_3";
 
         DatabaseManager.save(Arrays.asList(pa, pb, pc));
         List<PlayerInfo> loaded = DatabaseManager.load();
@@ -302,12 +313,12 @@ class DatabaseManagerTest {
         DatabaseManager.initialize();
 
         UUID owner = UUID.randomUUID();
-        PlayerInfo p1 = new PlayerInfo(owner); p1.lvl = 1;
+        PlayerInfo p1 = new PlayerInfo(owner); p1.lvl = 1; p1.currentLevelId = "level_1";
         DatabaseManager.save(Collections.singletonList(p1));
         assertThat(DatabaseManager.load().get(0).lvl).isEqualTo(1);
 
         // Same UUID at the same slot, lvl bumped.
-        PlayerInfo p2 = new PlayerInfo(owner); p2.lvl = 9;
+        PlayerInfo p2 = new PlayerInfo(owner); p2.lvl = 9; p2.currentLevelId = "level_9";
         DatabaseManager.save(Collections.singletonList(p2));
 
         List<PlayerInfo> loaded = DatabaseManager.load();

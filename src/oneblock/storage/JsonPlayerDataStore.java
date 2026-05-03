@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import oneblock.Level;
+import oneblock.LevelRegistry;
 import oneblock.Oneblock;
 import oneblock.PlayerInfo;
+import oneblock.migration.LegacyLevelMapper;
 import oneblock.utils.Utils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -42,6 +45,13 @@ public class JsonPlayerDataStore {
         continue;
       }
       user.put("uuid", pl.uuid.toString());
+      user.put("current_level_id", pl.currentLevelId);
+      org.json.simple.JSONObject taskObj = new org.json.simple.JSONObject();
+      for (java.util.Map.Entry<String, Integer> e : pl.taskProgress.snapshot().entrySet()) {
+        taskObj.put(e.getKey(), e.getValue());
+      }
+      if (!taskObj.isEmpty()) user.put("task_progress", taskObj);
+      // Legacy dual-write for backward compat during Phase 1
       user.put("lvl", pl.lvl);
       user.put("breaks", pl.breaks);
       if (pl.allowVisit) user.put("visit", pl.allowVisit);
@@ -107,10 +117,37 @@ public class JsonPlayerDataStore {
     UUID owner = resolveOwner(user, row);
     if (owner == null) return null;
     PlayerInfo pl = new PlayerInfo(owner);
+    Object currentLevelIdObj = user.get("current_level_id");
+    Object taskProgressObj = user.get("task_progress");
     Object lvlObj = user.get("lvl");
     Object brkObj = user.get("breaks");
-    pl.lvl = (lvlObj instanceof Number) ? ((Number) lvlObj).intValue() : 0;
-    pl.breaks = (brkObj instanceof Number) ? ((Number) brkObj).intValue() : 0;
+
+    if (currentLevelIdObj instanceof String && LevelRegistry.contains((String) currentLevelIdObj)) {
+      pl.currentLevelId = (String) currentLevelIdObj;
+    } else if (lvlObj instanceof Number) {
+      int legacyLvl = ((Number) lvlObj).intValue();
+      pl.lvl = legacyLvl;
+      pl.currentLevelId = LegacyLevelMapper.fromInt(legacyLvl);
+    } else {
+      pl.currentLevelId = "level_0";
+    }
+
+    if (taskProgressObj instanceof org.json.simple.JSONObject) {
+      org.json.simple.JSONObject tp = (org.json.simple.JSONObject) taskProgressObj;
+      java.util.Map<String, Integer> snap = new java.util.HashMap<>();
+      for (Object k : tp.keySet()) {
+        Object v = tp.get(k);
+        if (k instanceof String && v instanceof Number) {
+          snap.put((String) k, ((Number) v).intValue());
+        }
+      }
+      pl.taskProgress.loadSnapshot(snap);
+      Level level = LevelRegistry.get(pl.currentLevelId);
+      if (level != null) pl.taskProgress.recomputeCompletion(level);
+    } else {
+      pl.breaks = (brkObj instanceof Number) ? ((Number) brkObj).intValue() : 0;
+    }
+    pl.syncLegacyFields();
     pl.allowVisit = user.containsKey("visit");
     Object arrObj = user.containsKey("invated") ? user.get("invated") : user.get("invited");
     if (arrObj instanceof JSONArray) {

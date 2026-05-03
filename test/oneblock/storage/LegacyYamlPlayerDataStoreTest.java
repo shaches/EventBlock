@@ -23,6 +23,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import oneblock.Level;
+import oneblock.LevelRegistry;
 import oneblock.Oneblock;
 import oneblock.PlayerInfo;
 import oneblock.utils.Utils;
@@ -69,6 +71,15 @@ class LegacyYamlPlayerDataStoreTest {
         when(mockPlugin.getLogger()).thenReturn(pluginLogger);
         Oneblock.plugin = mockPlugin;
         Class.forName("oneblock.storage.LegacyYamlPlayerDataStore");
+        
+        // Initialize LevelRegistry with test levels to prevent LegacyLevelMapper.fromInt()
+        // from logging warnings when it can't find levels in the registry.
+        ArrayList<Level> testLevels = new ArrayList<>();
+        for (int i = 0; i <= 23; i++) {
+            Level lvl = new Level("level_" + i, "Test Level " + i);
+            testLevels.add(lvl);
+        }
+        LevelRegistry.replaceAll(testLevels);
     }
 
     @AfterAll

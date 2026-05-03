@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import oneblock.gui.GUI;
 import oneblock.migration.LegacyBlocksMigrator;
+import oneblock.migration.LegacyLevelMapper;
 import oneblock.storage.DatabaseManager;
 import oneblock.utils.Compat;
 import oneblock.utils.LowerCaseYaml;
@@ -116,39 +117,44 @@ public final class ConfigManager {
     File block = getFile("blocks.yml");
 
     // Migrate legacy (cumulative-list) blocks.yml in-place before parsing.
-    // Uses ChestItems.chest (already-loaded or legacy) to map old chest-alias
-    // tokens to vanilla loot-table keys during flattening.
     LegacyBlocksMigrator.migrateBlocks(block, ChestItems.chest);
 
     config_temp = YamlConfiguration.loadConfiguration(block);
 
-    // MaxLevel: may be scalar (name-only, legacy passthrough) or a full list entry.
-    // For the max parser we pass idx=1 because Level.max is never a member of
-    // the published levels list - this preserves the legacy length-default of
-    // 16 + 1*Level.multiplier that the pre-Phase-4.1 level.getId() fallback
-    // produced for max.
+    // MaxLevel parsing (unchanged semantics)
     if (config_temp.isString("MaxLevel"))
       Level.max.name = Utils.translateColorCodes(config_temp.getString("MaxLevel"));
     else if (config_temp.isList("MaxLevel"))
       parseLevelFromList(config_temp.getList("MaxLevel"), Level.max, 1);
 
-    // Phase 4.1: stage levels in a fresh local list and only publish via
-    // Level.replaceAll once the parse loop completed without throwing. If a
-    // parse step throws (rare - most YAML failures are tolerated with a
-    // warning) the previous Level.levels stays visible to async readers.
-    // parseLevelFromList receives the loop index `i` so its length-default
-    // fallback no longer depends on level.getId() against the published
-    // list (the staged level isn't a member of Level.levels yet).
     List<Level> stagedLevels = new ArrayList<>();
-    for (int i = 0; config_temp.isList(String.format("%d", i)); i++) {
-      List<?> bl_temp = config_temp.getList(String.format("%d", i));
-      if (bl_temp == null || bl_temp.isEmpty()) continue;
-      Object first = bl_temp.get(0);
-      Level level =
-          new Level(
-              first instanceof String ? Utils.translateColorCodes((String) first) : "Level " + i);
-      stagedLevels.add(level);
-      parseLevelFromList(bl_temp, level, i);
+
+    if (config_temp.isConfigurationSection("levels")) {
+      // ---- New schema (Phase 1): string-keyed level map ----
+      org.bukkit.configuration.ConfigurationSection levelsSection =
+          config_temp.getConfigurationSection("levels");
+      if (levelsSection != null) {
+        for (String levelId : levelsSection.getKeys(false)) {
+          org.bukkit.configuration.ConfigurationSection sec =
+              levelsSection.getConfigurationSection(levelId);
+          if (sec == null) continue;
+          Level level = parseNewLevel(sec, levelId);
+          if (level != null) stagedLevels.add(level);
+        }
+      }
+    } else {
+      // ---- Legacy schema: integer-indexed lists at root ----
+      for (int i = 0; config_temp.isList(String.format("%d", i)); i++) {
+        List<?> bl_temp = config_temp.getList(String.format("%d", i));
+        if (bl_temp == null || bl_temp.isEmpty()) continue;
+        Object first = bl_temp.get(0);
+        Level level =
+            new Level(
+                "level_" + i,
+                first instanceof String ? Utils.translateColorCodes((String) first) : "Level " + i);
+        stagedLevels.add(level);
+        parseLevelFromList(bl_temp, level, i);
+      }
     }
 
     if (Level.max.mobPoolSize() == 0) {
@@ -157,7 +163,22 @@ public final class ConfigManager {
       if (totalMobs == 0) Oneblock.plugin.getLogger().warning("Mobs are not set in the blocks.yml");
     }
 
+    // Load optional legacy_mapping (integer -> string id overrides)
+    if (config_temp.isConfigurationSection("legacy_mapping")) {
+      org.bukkit.configuration.ConfigurationSection mappingSection =
+          config_temp.getConfigurationSection("legacy_mapping");
+      if (mappingSection != null) {
+        java.util.Map<String, String> raw = new java.util.HashMap<>();
+        for (String key : mappingSection.getKeys(false)) {
+          raw.put(key, mappingSection.getString(key));
+        }
+        LegacyLevelMapper.initialize(raw);
+      }
+    }
+
+    // Publish to both the legacy list and the new registry
     Level.replaceAll(stagedLevels);
+    LevelRegistry.replaceAll(stagedLevels);
 
     setupProgressBar();
   }
@@ -339,7 +360,6 @@ public final class ConfigManager {
     }
   }
 
-  @SuppressWarnings("unchecked")
   PoolEntry resolveDecorated(Map<String, Object> m) {
     Object baseObj = m.get("decorated");
     XMaterial base = Compat.GRASS_BLOCK;
@@ -466,7 +486,7 @@ public final class ConfigManager {
           if (inf.uuid != null) {
             Player p = Bukkit.getPlayer(inf.uuid);
             if (p == null) inf.createBar();
-            else inf.createBar(Oneblock.getBarTitle(p, inf.lvl));
+            else inf.createBar(Oneblock.getBarTitle(p, inf));
 
             inf.bar.setVisible(Oneblock.settings().progressBar);
           }
@@ -527,6 +547,86 @@ public final class ConfigManager {
     ChestItems.chest = getFile("chests.yml");
     LegacyBlocksMigrator.migrateChests(ChestItems.chest);
     ChestItems.load();
+  }
+
+  private Level parseNewLevel(org.bukkit.configuration.ConfigurationSection sec, String levelId) {
+    Level level = new Level(levelId, Utils.translateColorCodes(sec.getString("name", levelId)));
+
+    if (!Compat.superlegacy) {
+      String colorName = sec.getString("color");
+      if (colorName != null) {
+        try {
+          level.color = BarColor.valueOf(colorName.toUpperCase());
+        } catch (Exception e) {
+          level.color = Level.max.color;
+        }
+      } else {
+        level.color = Level.max.color;
+      }
+      String styleName = sec.getString("style");
+      if (styleName != null) {
+        try {
+          level.style = BarStyle.valueOf(styleName.toUpperCase());
+        } catch (Exception e) {
+          level.style = Level.max.style;
+        }
+      } else {
+        level.style = Level.max.style;
+      }
+    }
+
+    level.length = Math.max(1, sec.getInt("length", 16));
+
+    // Parse next_themes
+    List<String> nextThemes = sec.getStringList("next_themes");
+    if (nextThemes != null && !nextThemes.isEmpty()) {
+      level.nextThemes.addAll(nextThemes);
+    }
+
+    // Parse tasks
+    List<Map<?, ?>> taskList = sec.getMapList("tasks");
+    java.util.Set<String> groups = new java.util.HashSet<>();
+    for (Map<?, ?> m : taskList) {
+      try {
+        String id = (String) m.get("id");
+        TaskType type = TaskType.valueOf(((String) m.get("type")).toUpperCase());
+        String target = (String) m.get("target");
+        int amount = ((Number) m.get("amount")).intValue();
+        String group = (String) m.get("group");
+        if (group == null || group.isEmpty()) group = "default";
+        level.tasks.add(new LevelTask(id, type, target, amount, group));
+        groups.add(group);
+      } catch (Exception e) {
+        Oneblock.plugin
+            .getLogger()
+            .warning("[Oneblock] blocks.yml: invalid task entry in '" + levelId + "': " + m);
+      }
+    }
+
+    // Parse completion requirement (boolean expression over task groups)
+    String completionReq = sec.getString("completion_requirement");
+    try {
+      level.completionExpr = CompletionExprParser.parse(completionReq, groups);
+    } catch (IllegalArgumentException e) {
+      Oneblock.plugin
+          .getLogger()
+          .warning(
+              "[Oneblock] blocks.yml: invalid completion_requirement for level '"
+                  + levelId
+                  + "', defaulting to ANY: "
+                  + e.getMessage());
+      level.completionExpr = CompletionExprParser.parse(null, groups);
+    }
+
+    // Parse pool entries
+    List<?> pool = sec.getList("pool");
+    if (pool != null) {
+      for (Object raw : pool) {
+        parsePoolEntry(raw, level);
+      }
+    }
+
+    return level;
   }
 
   File getFile(String name) {

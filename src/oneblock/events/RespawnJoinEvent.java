@@ -56,5 +56,11 @@ public class RespawnJoinEvent implements Listener {
         Oneblock.plugin.updateBorder(pl);
       }
     }
+    // Stuck-player recovery: if the player disconnected while waiting for a theme
+    // selection, re-open the GUI so progression is not permanently halted.
+    PlayerInfo inf = PlayerInfo.get(pl.getUniqueId());
+    if (inf != null && inf.waitingForThemeSelection) {
+      oneblock.gui.LevelSelectGUI.openIfAvailable(pl, inf);
+    }
   }
 }

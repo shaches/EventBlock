@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import oneblock.Oneblock;
 import oneblock.PlayerInfo;
+import oneblock.migration.LegacyLevelMapper;
 import oneblock.utils.Utils;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -70,8 +71,13 @@ public class LegacyYamlPlayerDataStore {
       if (newinf != null) newinf.uuids.add(uuid);
       else {
         newinf = new PlayerInfo(uuid);
-        if (data.isInt(lvl)) newinf.lvl = data.getInt(lvl);
+        if (data.isInt(lvl)) {
+          int legacyLvl = data.getInt(lvl);
+          newinf.lvl = legacyLvl;
+          newinf.currentLevelId = LegacyLevelMapper.fromInt(legacyLvl);
+        }
         if (data.isInt(breaks)) newinf.breaks = data.getInt(breaks);
+        newinf.syncLegacyFields();
         infs.add(newinf);
       }
     }

@@ -3,6 +3,9 @@ package oneblock.gui;
 import java.util.ArrayList;
 import java.util.List;
 import oneblock.ChestItems;
+import oneblock.Level;
+import oneblock.Oneblock;
+import oneblock.PlayerInfo;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -57,6 +60,32 @@ public class GUIListener implements Listener {
         if (meta == null) return;
         command = meta.getDisplayName();
         pl.performCommand("ob visit " + command);
+        return;
+
+      case LEVEL_SELECT:
+        if (e.getClickedInventory() != inv) return;
+        item = e.getCurrentItem();
+        if (item == null) return;
+        meta = item.getItemMeta();
+        if (meta == null) return;
+        pl.closeInventory();
+        // Resolve level id from lore (format: "ID: level_id") or fallback to display name
+        String levelId = null;
+        List<String> lore = meta.getLore();
+        if (lore != null && !lore.isEmpty()) {
+          String firstLore = org.bukkit.ChatColor.stripColor(lore.get(0));
+          if (firstLore.startsWith("ID: ")) levelId = firstLore.substring(4);
+        }
+        if (levelId == null) {
+          levelId = org.bukkit.ChatColor.stripColor(meta.getDisplayName());
+        }
+        PlayerInfo inf = PlayerInfo.get(pl.getUniqueId());
+        if (inf != null) {
+          Level next = inf.advanceToLevel(levelId);
+          if (next != null) {
+            Oneblock.configManager.reward.executeAdvanceReward(pl, levelId, next.name);
+          }
+        }
         return;
 
       default:

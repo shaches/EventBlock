@@ -13,6 +13,7 @@ import oneblock.config.Settings;
 import oneblock.events.BlockEvent;
 import oneblock.events.ItemsAdderEvent;
 import oneblock.events.RespawnJoinEvent;
+import oneblock.events.TaskEventListener;
 import oneblock.events.TeleportEvent;
 import oneblock.events.TeleportNetherEvent;
 import oneblock.gui.GUI;
@@ -165,8 +166,10 @@ public class Oneblock extends JavaPlugin {
     return Compat.GENERATOR;
   }
 
-  public static String getBarTitle(Player p, int lvl) {
-    if (SETTINGS.lvlBarMode) return Level.get(lvl).name;
+  public static String getBarTitle(Player p, PlayerInfo inf) {
+    Level level = LevelRegistry.get(inf.currentLevelId);
+    if (level == null || level == Level.max) level = Level.get(inf.lvl);
+    if (SETTINGS.lvlBarMode) return level.name;
     if (plugin.PAPI) return PlaceholderAPI.setPlaceholders(p, SETTINGS.phText);
 
     return SETTINGS.phText;
@@ -198,6 +201,13 @@ public class Oneblock extends JavaPlugin {
     loadPlayerData();
     configManager.loadAdditionalConfigFiles();
 
+    // Phase-2 polish: now that LevelRegistry is populated, reconcile any lvl
+    // fields that were left stale because syncLegacyFields() ran before the
+    // registry had data (early plugin load order).
+    for (PlayerInfo inf : PlayerInfo.list) {
+      if (inf != null) inf.syncLegacyFields();
+    }
+
     setupMetrics(metrics);
 
     pluginManager.registerEvents(new RespawnJoinEvent(), this);
@@ -205,6 +215,7 @@ public class Oneblock extends JavaPlugin {
     pluginManager.registerEvents(new BlockEvent(), this);
     pluginManager.registerEvents(new GUIListener(), this);
     pluginManager.registerEvents(new TeleportNetherEvent(), this);
+    pluginManager.registerEvents(new TaskEventListener(), this);
     if (placetype == Place.Type.ItemsAdder)
       pluginManager.registerEvents(new ItemsAdderEvent(), this);
     org.bukkit.command.PluginCommand oneblockCmd = getCommand("oneblock");
@@ -260,20 +271,60 @@ public class Oneblock extends JavaPlugin {
 
   public void generateBlock(
       final int playerX, final int playerZ, final int plID, final Player ponl, final Block block) {
-    Level levelInfo = updatePlayerProgression(plID, ponl);
+    generateBlock(playerX, playerZ, plID, ponl, block, null);
+  }
+
+  public void generateBlock(
+      final int playerX,
+      final int playerZ,
+      final int plID,
+      final Player ponl,
+      final Block block,
+      final org.bukkit.Material brokenType) {
+    Level levelInfo = updatePlayerProgression(plID, ponl, brokenType);
     generateWorldElements(playerX, playerZ, block, levelInfo);
   }
 
-  private Level updatePlayerProgression(final int plID, final Player ponl) {
+  private Level updatePlayerProgression(
+      final int plID, final Player ponl, final org.bukkit.Material brokenType) {
     final PlayerInfo inf = PlayerInfo.get(plID);
-    Level levelInfo = Level.get(inf.lvl);
-    if (++inf.breaks >= inf.getRequiredBreaks()) {
-      levelInfo = inf.lvlup();
-      if (SETTINGS.progressBar) inf.createBar();
-      configManager.reward.executeRewards(ponl, inf.lvl, levelInfo.name);
+    Level levelInfo = LevelRegistry.get(inf.currentLevelId);
+    if (levelInfo == null || levelInfo == Level.max) levelInfo = Level.get(inf.lvl);
+
+    // Phase 2: task-based progression
+    boolean tasksPresent = levelInfo.tasks != null && !levelInfo.tasks.isEmpty();
+    if (tasksPresent && !inf.waitingForThemeSelection) {
+      inf.breaks++; // legacy dual-write
+      if (brokenType != null) {
+        String typeName = brokenType.name();
+        for (LevelTask task : levelInfo.tasks) {
+          if (task.type == TaskType.BREAK && typeName.equalsIgnoreCase(task.target)) {
+            inf.taskProgress.increment(task.id);
+          }
+        }
+      }
+      boolean wasComplete = inf.taskProgress.isLevelComplete();
+      boolean nowComplete = inf.taskProgress.recomputeCompletion(levelInfo);
+      if (nowComplete && !wasComplete) {
+        inf.waitingForThemeSelection = true;
+        if (SETTINGS.progressBar && inf.bar != null) {
+          inf.bar.setTitle("Level Complete! Choose your next theme.");
+          inf.bar.setProgress(1.0);
+        }
+        configManager.reward.executeCompletionReward(ponl, inf.currentLevelId, levelInfo.name);
+        oneblock.gui.LevelSelectGUI.openIfAvailable(ponl, inf);
+      }
+    } else if (!tasksPresent) {
+      // Legacy break-count progression for levels without tasks
+      if (++inf.breaks >= inf.getRequiredBreaks()) {
+        levelInfo = inf.lvlup();
+        if (SETTINGS.progressBar) inf.createBar();
+        configManager.reward.executeRewards(ponl, inf.lvl, levelInfo.name);
+      }
     }
+
     if (SETTINGS.progressBar) {
-      inf.bar.setTitle(getBarTitle(ponl, inf.lvl));
+      inf.bar.setTitle(getBarTitle(ponl, inf));
       inf.bar.setProgress(inf.getPercent());
       inf.bar.addPlayer(ponl);
     }
@@ -478,7 +529,14 @@ public class Oneblock extends JavaPlugin {
   }
 
   public static int getLevel(UUID playerUuid) {
-    return PlayerInfo.get(playerUuid).lvl;
+    PlayerInfo inf = PlayerInfo.get(playerUuid);
+    if (inf.currentLevelId != null && inf.currentLevelId.startsWith("level_")) {
+      try {
+        return Integer.parseInt(inf.currentLevelId.substring(6));
+      } catch (NumberFormatException ignored) {
+      }
+    }
+    return inf.lvl;
   }
 
   public static int getNextLevel(UUID playerUuid) {
@@ -486,8 +544,10 @@ public class Oneblock extends JavaPlugin {
   }
 
   public static String getLevelName(UUID playerUuid) {
-    int lvl = getLevel(playerUuid);
-    return Level.get(lvl).name;
+    PlayerInfo inf = PlayerInfo.get(playerUuid);
+    Level level = LevelRegistry.get(inf.currentLevelId);
+    if (level == null || level == Level.max) level = Level.get(inf.lvl);
+    return level.name;
   }
 
   public static String getNextLevelName(UUID playerUuid) {

@@ -9,7 +9,8 @@ public class GUIHolder implements InventoryHolder {
     MAIN_MENU,
     TOP,
     INVITE,
-    VISIT
+    VISIT,
+    LEVEL_SELECT
   }
 
   private final GUIType guiType;

@@ -129,6 +129,7 @@ class OBPDispatchTest {
         PlayerInfo info = new PlayerInfo(owner);
         info.lvl = lvl;
         info.breaks = breaks;
+        info.currentLevelId = "level_" + lvl;
         PlayerInfo.set(0, info);
         return info;
     }

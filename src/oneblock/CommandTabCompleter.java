@@ -134,9 +134,12 @@ public final class CommandTabCompleter implements TabCompleter {
               "%OB_lvl_name% &8| &fProgress: &e%OB_break_on_this_lvl%/%OB_lvl_length%"
                   + " &8(&b%OB_need_to_lvl_up% left&8)");
         }
-      } else if ("setlevel".equals(arg0))
+      } else if ("setlevel".equals(arg0)) {
         for (int i = 0; i < Level.size(); i++) commands.add(String.valueOf(i));
-      else if ("chest".equals(arg0)) commands.add("set");
+        for (Level l : LevelRegistry.snapshot().allOrdered()) {
+          if (l.id != null) commands.add(l.id);
+        }
+      } else if ("chest".equals(arg0)) commands.add("set");
     } else if (isAdmin
         && args.length == 4
         && "chest".equalsIgnoreCase(args[0])
