@@ -20,7 +20,7 @@ public class OBWorldGuard {
   }
 
   public static void setEnabled(boolean value) {
-    enabled = canUse && value;
+    enabled = false;
   }
 
   public void recreateRegions() {

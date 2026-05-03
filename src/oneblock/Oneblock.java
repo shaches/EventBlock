@@ -54,7 +54,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Oneblock extends JavaPlugin {
   public static Oneblock plugin;
 
-  private static final int FLOWER_CHANCE = 3;
   private static final int BORDER_WARNING_DISTANCE = 2;
   private static final double BORDER_DAMAGE_AMOUNT = .2;
   private static final double BORDER_DAMAGE_BUFFER = 1;
@@ -266,10 +265,7 @@ public class Oneblock extends JavaPlugin {
     Bukkit.getScheduler().runTaskTimer(this, new IslandBlockGenTask(this), 40, 80);
     enabled = true;
 
-    if (OBWorldGuard.canUse && Bukkit.getPluginManager().isPluginEnabled("WorldGuard")) {
-      getLogger().info("WorldGuard has been found!");
-      worldGuard.recreateRegions();
-    } else OBWorldGuard.setEnabled(false);
+    OBWorldGuard.setEnabled(false);
   }
 
   public void generateBlock(
