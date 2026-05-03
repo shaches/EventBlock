@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.shaches</groupId>
 	<artifactId>EventBlock</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<name>EventBlock</name>
 	<description>EventBlock – Event driven OneBlock minigame plugin</description>
 	<url>https://github.com/shaches/EventBlock</url>
