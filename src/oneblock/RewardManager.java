@@ -56,7 +56,9 @@ public final class RewardManager {
           Oneblock.plugin
               .getLogger()
               .warning(
-                  "[Oneblock] Invalid level number '" + levelStr + "' in rewards.yml; treating as string-id reward set.");
+                  "[Oneblock] Invalid level number '"
+                      + levelStr
+                      + "' in rewards.yml; treating as string-id reward set.");
           levelIdRewards.put(levelStr, processedRewards);
         }
       }

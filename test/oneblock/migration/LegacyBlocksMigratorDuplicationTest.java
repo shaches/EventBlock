@@ -242,7 +242,8 @@ class LegacyBlocksMigratorDuplicationTest {
     // Migrate with PER_LEVEL mode
     LegacyBlocksMigrator.migrateBlocks(blocksFile, chestsFile, Settings.MigrationMode.PER_LEVEL);
 
-    // Verify no cross-level leakage: level 0 has stone (weight 3), level 1 has stone (weight 1) + dirt (weight 1)
+    // Verify no cross-level leakage: level 0 has stone (weight 3), level 1 has stone (weight 1) +
+    // dirt (weight 1)
     YamlConfiguration migrated = YamlConfiguration.loadConfiguration(blocksFile);
     List<?> migratedLevel0 = migrated.getList("0");
     List<?> migratedLevel1 = migrated.getList("1");

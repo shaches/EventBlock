@@ -2,8 +2,18 @@ package oneblock.storage;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -279,8 +289,8 @@ public class DatabaseManager {
     return dataSource != null && !dataSource.isClosed();
   }
 
-  private static java.util.Map<String, Integer> parseTaskProgress(String json) {
-    java.util.Map<String, Integer> result = new java.util.HashMap<>();
+  private static Map<String, Integer> parseTaskProgress(String json) {
+    Map<String, Integer> result = new HashMap<>();
     if (json == null || json.isEmpty()) return result;
     json = json.trim();
     if (!json.startsWith("{") || !json.endsWith("}")) return result;
@@ -299,11 +309,11 @@ public class DatabaseManager {
     return result;
   }
 
-  private static String formatTaskProgress(java.util.Map<String, Integer> snapshot) {
+  private static String formatTaskProgress(Map<String, Integer> snapshot) {
     if (snapshot == null || snapshot.isEmpty()) return null;
     StringBuilder sb = new StringBuilder("{");
     boolean first = true;
-    for (java.util.Map.Entry<String, Integer> e : snapshot.entrySet()) {
+    for (Map.Entry<String, Integer> e : snapshot.entrySet()) {
       if (!first) sb.append(",");
       sb.append("\"").append(e.getKey().replace("\"", "\\\"")).append("\":").append(e.getValue());
       first = false;

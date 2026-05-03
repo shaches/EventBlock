@@ -59,7 +59,7 @@ public final class ClearCommand implements Subcommand {
     inf.taskProgress.reset();
     inf.syncLegacyFields();
     if (Oneblock.settings().progressBar) inf.bar.setVisible(false);
-    int result[] = ctx.plugin().getIslandCoordinates(id);
+    int[] result = ctx.plugin().getIslandCoordinates(id);
     Island.clear(
         Oneblock.getWorld(), result[0], Oneblock.getY(), result[1], Oneblock.getOffset() / 4);
     ctx.sender()

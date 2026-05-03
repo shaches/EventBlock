@@ -61,7 +61,7 @@ public class BlockEvent implements Listener {
     final UUID uuid = ponl.getUniqueId();
     final int plID = PlayerInfo.getId(uuid);
     if (plID == -1) return;
-    final int result[] = Oneblock.plugin.getIslandCoordinates(plID);
+    final int[] result = Oneblock.plugin.getIslandCoordinates(plID);
     if (block.getX() != result[0]) return;
     if (block.getZ() != result[1]) return;
     final org.bukkit.Material brokenType = block.getType();

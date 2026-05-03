@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.shaches</groupId>
 	<artifactId>EventBlock</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<name>EventBlock</name>
 	<description>EventBlock – Event driven OneBlock minigame plugin</description>
 	<url>https://github.com/shaches/EventBlock</url>
@@ -24,13 +24,11 @@
 		<junit.version>5.11.4</junit.version>
 		<mockito.version>5.14.2</mockito.version>
 		<assertj.version>3.26.3</assertj.version>
-		<!-- Phase 7 static-analysis tooling versions -->
+		<!-- Static-analysis tooling versions -->
 		<spotless.version>2.44.3</spotless.version>
 		<jacoco.version>0.8.13</jacoco.version>
 		<spotbugs.version>4.9.1.0</spotbugs.version>
 		<findsecbugs.version>1.13.0</findsecbugs.version>
-		<!-- Git ref Spotless diffs new-code against. Override with -Dspotless.ratchet= -->
-		<spotless.ratchet>origin/main</spotless.ratchet>
 	</properties>
 
 	<repositories>
@@ -260,10 +258,23 @@
 <testSourceDirectory>${test.dir}</testSourceDirectory>
 <defaultGoal>clean package</defaultGoal>
 <resources>
+<!-- plugin.yml is filtered so ${project.version} (and any other Maven property)
+     gets substituted at build time. Kept as a separate <resource> entry to avoid
+     filtering messages.yml / blocks.yml / chests.yml etc., whose ${} would never
+     match a Maven property but whose %s / & literals are easy to misinterpret. -->
 <resource>
 <directory>${src.dir}</directory>
+<filtering>true</filtering>
+<includes>
+<include>plugin.yml</include>
+</includes>
+</resource>
+<resource>
+<directory>${src.dir}</directory>
+<filtering>false</filtering>
 <excludes>
 <exclude>**/*.java</exclude>
+<exclude>plugin.yml</exclude>
 </excludes>
 </resource>
 </resources>
@@ -396,17 +407,15 @@
 </executions>
 </plugin>
 
-<!-- Phase 7: Spotless plugin is DECLARED at build level (so that
-             `mvn spotless:check` and `mvn spotless:apply` work from the
-             command line), but the `check` execution only fires under the
-             `ci` profile below. Keeping default builds free of format gates
-             prevents mass-failure on the pre-refactor codebase. -->
+<!-- Spotless: declared at build level so `mvn spotless:check` and
+             `mvn spotless:apply` work from the command line; the hard-fail
+             `check` execution is wired under the `ci` profile, the
+             auto-`apply` execution under the `format` profile. -->
 <plugin>
 <groupId>com.diffplug.spotless</groupId>
 <artifactId>spotless-maven-plugin</artifactId>
 <version>${spotless.version}</version>
 <configuration>
-<ratchetFrom>${spotless.ratchet}</ratchetFrom>
 <java>
 <includes>
 <include>${src.dir}/**/*.java</include>

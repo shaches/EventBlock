@@ -1,4 +1,4 @@
-package oneblock.util;
+package oneblock.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

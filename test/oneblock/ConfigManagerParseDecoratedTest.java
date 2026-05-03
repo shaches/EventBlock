@@ -12,13 +12,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link ConfigManager#parsePoolEntry(Object, Level)} and
- * {@link ConfigManager#resolveDecorated(Map)} for the new {@code decorated:} YAML syntax.
+ * Tests {@link ConfigManager#parsePoolEntry(Object, Level)} and {@link
+ * ConfigManager#resolveDecorated(Map)} for the new {@code decorated:} YAML syntax.
  */
 class ConfigManagerParseDecoratedTest {
 
   @Test
-  @DisplayName("parsePoolEntry adds a decorated entry with custom base, chance, offset and decorations")
+  @DisplayName(
+      "parsePoolEntry adds a decorated entry with custom base, chance, offset and decorations")
   void decoratedMapEntryIsAddedToBlockPool() {
     ConfigManager cm = new ConfigManager();
     Level level = new Level("Test");
@@ -63,9 +64,9 @@ class ConfigManagerParseDecoratedTest {
 
     DecoratedBlock d = (DecoratedBlock) entry.value;
     assertThat(d.base()).isEqualTo(Compat.GRASS_BLOCK);
-    assertThat(d.chance()).isEqualTo(3);   // default
-    assertThat(d.offsetY()).isEqualTo(1);  // default
-    assertThat(d.decorations()).isNull();  // falls back to global flowers
+    assertThat(d.chance()).isEqualTo(3); // default
+    assertThat(d.offsetY()).isEqualTo(1); // default
+    assertThat(d.decorations()).isNull(); // falls back to global flowers
   }
 
   @Test

@@ -7,7 +7,7 @@ import oneblock.WeightedPool;
 import oneblock.command.AdminPrelude;
 import oneblock.command.CommandContext;
 import oneblock.command.Subcommand;
-import oneblock.util.PoolDisplayUtils;
+import oneblock.utils.PoolDisplayUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.EntityType;
 

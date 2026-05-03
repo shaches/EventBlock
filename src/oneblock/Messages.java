@@ -14,7 +14,7 @@ public final class Messages {
   public static String invite_yourself =
       String.format("%sYou can't invite yourself.", ChatColor.YELLOW);
   public static String invite_no_island =
-      String.format("%sPlease create a island before you do this.", ChatColor.YELLOW);
+      String.format("%sPlease create an island before you do this.", ChatColor.YELLOW);
   public static String invite_team =
       String.format("%sMaximum number of seats on the island: %s", ChatColor.YELLOW, "%d");
   public static String invited =
@@ -22,14 +22,14 @@ public final class Messages {
           "%sYou were invited by player %s.%n%s/ob accept to accept).",
           ChatColor.GREEN, "%s", ChatColor.RED);
   public static String invited_success =
-      String.format("%sSuccesfully invited %s.", ChatColor.GREEN, "%s");
+      String.format("%sSuccessfully invited %s.", ChatColor.GREEN, "%s");
   public static String kicked =
       String.format("%s has been kicked off your island!", ChatColor.YELLOW);
   public static String kick_usage = String.format("%sUsage: /ob kick <username>", ChatColor.RED);
   public static String kick_yourself =
       String.format("%sYou can't kick yourself.", ChatColor.YELLOW);
   public static String accept_success =
-      String.format("%sSuccesfully accepted the invitation.", ChatColor.GREEN);
+      String.format("%sSuccessfully accepted the invitation.", ChatColor.GREEN);
   public static String accept_none =
       String.format("%s[There is no Pending invitations for you.]", ChatColor.RED);
   public static String idreset =

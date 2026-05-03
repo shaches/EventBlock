@@ -47,7 +47,7 @@ public final class JoinCommand implements Subcommand {
     if (plID == -1) {
       PlayerInfo inf = new PlayerInfo(uuid);
       plID = PlayerInfo.getFreeId(Oneblock.settings().useEmptyIslands);
-      int result[] = plugin.getIslandCoordinates(plID);
+      int[] result = plugin.getIslandCoordinates(plID);
       X_pl = result[0];
       Z_pl = result[1];
       if (plID != PlayerInfo.size())
@@ -57,7 +57,7 @@ public final class JoinCommand implements Subcommand {
       PlayerInfo.set(plID, inf);
       if (!Compat.superlegacy) inf.createBar(Oneblock.getBarTitle(ctx.player(), inf));
     } else {
-      int result[] = plugin.getIslandCoordinates(plID);
+      int[] result = plugin.getIslandCoordinates(plID);
       X_pl = result[0];
       Z_pl = result[1];
     }

@@ -189,9 +189,15 @@ class JsonPlayerDataStoreTest {
     UUID a = UUID.randomUUID();
     UUID b = UUID.randomUUID();
     UUID c = UUID.randomUUID();
-    PlayerInfo pa = new PlayerInfo(a); pa.lvl = 1; pa.currentLevelId = "level_1";
-    PlayerInfo pb = new PlayerInfo(b); pb.lvl = 2; pb.currentLevelId = "level_2";
-    PlayerInfo pc = new PlayerInfo(c); pc.lvl = 3; pc.currentLevelId = "level_3";
+    PlayerInfo pa = new PlayerInfo(a);
+    pa.lvl = 1;
+    pa.currentLevelId = "level_1";
+    PlayerInfo pb = new PlayerInfo(b);
+    pb.lvl = 2;
+    pb.currentLevelId = "level_2";
+    PlayerInfo pc = new PlayerInfo(c);
+    pc.lvl = 3;
+    pc.currentLevelId = "level_3";
 
     JsonPlayerDataStore.write(Arrays.asList(pa, pb, pc));
     List<PlayerInfo> read = JsonPlayerDataStore.read();

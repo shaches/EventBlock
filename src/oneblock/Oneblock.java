@@ -19,15 +19,18 @@ import oneblock.events.TeleportNetherEvent;
 import oneblock.gui.GUI;
 import oneblock.gui.GUIListener;
 import oneblock.loot.LootTableDispatcher;
-import oneblock.placement.*;
-import oneblock.storage.*;
+import oneblock.placement.Place;
+import oneblock.storage.DatabaseManager;
+import oneblock.storage.JsonPlayerDataStore;
+import oneblock.storage.LegacyYamlPlayerDataStore;
 import oneblock.tasks.IslandBlockGenTask;
 import oneblock.tasks.IslandParticleTask;
 import oneblock.tasks.PlayerCacheRefreshTask;
 import oneblock.tasks.PlayerDataSaveTask;
 import oneblock.tasks.WorldInitTask;
-import oneblock.utils.*;
-import oneblock.worldguard.*;
+import oneblock.utils.Compat;
+import oneblock.utils.Utils;
+import oneblock.worldguard.OBWorldGuard;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
@@ -398,7 +401,7 @@ public class Oneblock extends JavaPlugin {
 
   public void updateBorderLocation(Player pl, Location loc) {
     int plID = findNearestRegionId(loc);
-    int result[] = getIslandCoordinates(plID);
+    int[] result = getIslandCoordinates(plID);
     int playerX = result[0], playerZ = result[1];
 
     WorldBorder br = Bukkit.createWorldBorder();

@@ -22,7 +22,7 @@ public class RespawnJoinEvent implements Listener {
     int plID = PlayerInfo.getId(pl.getUniqueId());
     if (plID == -1) return;
 
-    int result[] = Oneblock.plugin.getIslandCoordinates(plID);
+    int[] result = Oneblock.plugin.getIslandCoordinates(plID);
     Location loc = new Location(world, result[0] + .5, Oneblock.getY() + 1.75, result[1] + .5);
     e.setRespawnLocation(loc);
   }

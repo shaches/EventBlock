@@ -1,4 +1,4 @@
-package oneblock.util;
+package oneblock.utils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

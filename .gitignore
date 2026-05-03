@@ -25,3 +25,6 @@ skills-lock.json
 # Test / coverage reports
 /coverage/
 *.exec
+
+# Local build logs captured for diagnostics; never commit
+*.log

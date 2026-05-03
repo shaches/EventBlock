@@ -9,7 +9,7 @@ EventBlock was developed as an independent fork of MrMarL’s OneBlock plugin.
 ### 1. Create the World
 Generate a dedicated EventBlock world using [Multiverse-Core](https://modrinth.com/plugin/multiverse-core):
 ```
-/mv create EventBlock normal -g Oneblock
+/mv create EventBlock normal -g EventBlock
 ```
 
 ### 2. Set the Spawn Point
@@ -118,17 +118,19 @@ Create custom default islands (7×12×7 area):
 
 ## Building from Source
 
-Requires **JDK 21** (Temurin recommended) and the bundled Apache Maven 3.9.15 under `resources/apache-maven-3.9.15/`.
+Requires **JDK 21** (Temurin recommended) and **Maven 3.9+**. Any system-installed Maven works; the `resources/apache-maven-3.9.15/` directory is gitignored and is only there as a convenience for contributors who have not installed Maven globally.
 
 ```powershell
-# Run unit tests
-.\resources\apache-maven-3.9.15\bin\mvn.cmd -B test
+# System-installed Maven (preferred)
+mvn -B test
+mvn -B -DskipTests clean package
 
-# Produce the shaded plugin jar (target/EventBlock-*.jar)
+# Or, using the bundled copy if you don't have Maven on PATH
+.\resources\apache-maven-3.9.15\bin\mvn.cmd -B test
 .\resources\apache-maven-3.9.15\bin\mvn.cmd -B -DskipTests clean package
 ```
 
-On Linux / macOS use the equivalent `mvn` shell script.
+The shaded plugin jar lands in `target/EventBlock-*.jar`. Linux / macOS users invoke the same goals via `mvn`.
 
 ---
 

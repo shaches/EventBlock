@@ -10,8 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests that Bukkit's YamlConfiguration actually hands back Map-shaped objects
- * for the decorated YAML syntax, so that parsePoolEntry can recognise them.
+ * Tests that Bukkit's YamlConfiguration actually hands back Map-shaped objects for the decorated
+ * YAML syntax, so that parsePoolEntry can recognise them.
  */
 class ConfigManagerYamlDecoratedTest {
 
