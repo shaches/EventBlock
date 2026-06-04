@@ -52,6 +52,7 @@ class OBPDispatchTest {
 
   private static PluginContext savedContext;
   private static List<Level> savedLevels;
+  private static List<Level> savedRegistryLevels;
   private List<PlayerInfo> savedPlayerInfoList;
 
   private OBP obp;
@@ -62,6 +63,7 @@ class OBPDispatchTest {
   static void installMockPlugin() {
     savedContext = PluginContext.get();
     savedLevels = new ArrayList<>(Level.snapshot());
+    savedRegistryLevels = new ArrayList<>(LevelRegistry.snapshot().allOrdered());
   }
 
   @AfterAll
@@ -71,6 +73,7 @@ class OBPDispatchTest {
       PluginContext.initialize(savedContext.plugin());
     }
     Level.replaceAll(savedLevels);
+    LevelRegistry.replaceAll(savedRegistryLevels);
   }
 
   @BeforeEach
@@ -93,11 +96,13 @@ class OBPDispatchTest {
     // overshoots the published list, which is the same fallback the
     // production code uses; the level lengths here are picked so
     // need_to_lvl_up has a deterministic non-zero result.
-    Level bronze = new Level("Bronze");
+    Level bronze = new Level("level_0", "Bronze");
     bronze.length = 16;
-    Level silver = new Level("Silver");
+    Level silver = new Level("level_1", "Silver");
     silver.length = 32;
-    Level.replaceAll(Arrays.asList(bronze, silver));
+    List<Level> levels = Arrays.asList(bronze, silver);
+    Level.replaceAll(levels);
+    LevelRegistry.replaceAll(levels);
 
     obp = new OBP();
   }
@@ -351,8 +356,10 @@ class OBPDispatchTest {
     UUID b = UUID.randomUUID();
     PlayerInfo pa = new PlayerInfo(a);
     pa.lvl = 9;
+    pa.currentLevelId = "level_9";
     PlayerInfo pb = new PlayerInfo(b);
     pb.lvl = 4;
+    pb.currentLevelId = "level_4";
     PlayerInfo.replaceAll(Arrays.asList(pa, pb));
 
     assertThat(obp.onRequest(offline(a), "top_1_lvl")).isEqualTo("9");
