@@ -1,5 +1,10 @@
 # EventBlock
 
+[![CI](https://github.com/shaches/EventBlock/actions/workflows/ci.yml/badge.svg)](https://github.com/shaches/EventBlock/actions/workflows/ci.yml)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Java Version](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/projects/jdk/21/)
+[![Spigot API](https://img.shields.io/badge/Spigot-1.16%2B-green.svg)](https://hub.spigotmc.org/)
+
 EventBlock was developed as an independent fork of MrMarL’s OneBlock plugin.
 
 ---
@@ -57,7 +62,7 @@ or simply **/ob**
 - **/ob progress_bar color [color]**
 - **/ob progress_bar [true/false]**
 - **/ob progress_bar level**
-- **/ob progress_bar settext <text>
+- **/ob progress_bar settext <text>**
 
 ### Config Commands:
 - **/ob reload**
@@ -118,19 +123,15 @@ Create custom default islands (7×12×7 area):
 
 ## Building from Source
 
-Requires **JDK 21** (Temurin recommended) and **Maven 3.9+**. Any system-installed Maven works; the `resources/apache-maven-3.9.15/` directory is gitignored and is only there as a convenience for contributors who have not installed Maven globally.
+Requires **JDK 21** (Temurin recommended) and **Maven 3.9+**. Any system-installed Maven works.
 
-```powershell
-# System-installed Maven (preferred)
+```bash
 mvn -B test
+mvn -B spotless:check
 mvn -B -DskipTests clean package
-
-# Or, using the bundled copy if you don't have Maven on PATH
-.\resources\apache-maven-3.9.15\bin\mvn.cmd -B test
-.\resources\apache-maven-3.9.15\bin\mvn.cmd -B -DskipTests clean package
 ```
 
-The shaded plugin jar lands in `target/EventBlock-*.jar`. Linux / macOS users invoke the same goals via `mvn`.
+The shaded plugin jar lands in `target/EventBlock-*.jar`.
 
 ---
 

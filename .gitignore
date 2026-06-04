@@ -28,3 +28,16 @@ skills-lock.json
 
 # Local build logs captured for diagnostics; never commit
 *.log
+
+# Minecraft decompilation work artifacts
+/work/
+
+# Local dependency worktrees; do not publish vendored forks from this repo
+/testcontainers-java/
+# Local release/build scratch artifacts
+/BuildTools.log.txt
+/gradle-*.zip
+/progress.txt
+
+# Local agent configuration/skills; not part of plugin distribution
+/.devin/

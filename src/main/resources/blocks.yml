@@ -1,0 +1,357 @@
+# =============================================================================
+# OneBlock - Default blocks.yml (Showcase Edition)
+# =============================================================================
+# This file demonstrates the new "levels" schema introduced in Phase 1.
+# Levels are defined under the "levels:" section instead of the legacy
+# integer-indexed lists.
+#
+# Each level supports:
+#   - name:           Display name (supports color codes with &)
+#   - color:          Boss-bar color (GREEN, BLUE, RED, YELLOW, PINK, PURPLE, WHITE)
+#   - style:          Boss-bar style (SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20)
+#   - length:         Number of blocks to break for legacy-style progression
+#   - next_themes:    List of level IDs offered when task-based level completes
+#   - tasks:          List of player tasks required for progression
+#   - completion_requirement: Boolean expression over task groups (default: ANY)
+#   - pool:           Weighted pool of blocks, mobs, chests, loot tables,
+#                     commands and decorated blocks.
+#
+# Pool entry types:
+#   block:      "MATERIAL_NAME"  or  { block: NAME, weight: N }
+#   mob:        "ENTITY_TYPE"    or  { mob: TYPE, weight: N }
+#   chest:      { chest: ALIAS }  or  { chest: ALIAS, weight: N }
+#   loot_table: { loot_table: "minecraft:chests/simple_dungeon" }
+#   command:    "/say Hello"      or  { command: "/cmd", weight: N }
+#   decorated:  { decorated: BASE, chance: N, offset_y: N, decorations: [ ... ] }
+#
+# Task types: BREAK, KILL, CRAFT, PLACE, FISH
+#
+# Completion expression grammar:
+#   group_name          - single group completed
+#   all                 - every group completed
+#   any                 - at least one group completed
+#   group1 AND group2   - both groups
+#   group1 OR group2    - either group
+#   NOT group           - group not completed
+#   (group1 OR group2) AND group3
+# =============================================================================
+
+MaxLevel: 'Level: &4&lMAX'
+
+levels:
+  # ---------------------------------------------------------------------------
+  # Level 0: Grass Starter
+  # ---------------------------------------------------------------------------
+  # A simple introduction using plain-string pool entries (auto-detected as
+  # blocks or mobs).  No tasks = classic break-count progression.
+  # ---------------------------------------------------------------------------
+  grass_starter:
+    name: '&aGrass Starter'
+    color: GREEN
+    style: SEGMENTED_20
+    length: 16
+    pool:
+      # Plain strings work and are auto-detected
+      - GRASS_BLOCK
+      - DIRT
+      - STONE
+      - COARSE_DIRT
+      - CREEPER
+      - ZOMBIE
+      - SHEEP
+      # Decorated block: GRASS_BLOCK base with a 1-in-3 chance of a flower
+      # on top (offset_y: 1). Uses the global flowers.yml list.
+      - decorated: GRASS_BLOCK
+        chance: 3
+        offset_y: 1
+
+  # ---------------------------------------------------------------------------
+  # Level 1: Forest
+  # ---------------------------------------------------------------------------
+  # Demonstrates weighted entries and a decorated block with custom
+  # decorations (mushrooms instead of flowers).
+  # ---------------------------------------------------------------------------
+  forest:
+    name: '&2Forest'
+    color: GREEN
+    style: SOLID
+    length: 20
+    pool:
+      # Weighted: OAK_LOG appears twice as often as BIRCH_LOG
+      - block: OAK_LOG
+        weight: 2
+      - block: BIRCH_LOG
+        weight: 1
+      - OAK_LEAVES
+      - BIRCH_LEAVES
+      - MOSSY_COBBLESTONE
+      # Decorated stone with custom mushrooms on top
+      - decorated: STONE
+        chance: 4
+        offset_y: 1
+        decorations:
+          - RED_MUSHROOM
+          - BROWN_MUSHROOM
+      - SPIDER
+      - COW
+      - PIG
+      - CHICKEN
+
+  # ---------------------------------------------------------------------------
+  # Level 2: The Mines
+  # ---------------------------------------------------------------------------
+  # First task-based level.  Players must satisfy tasks to advance.
+  # BREAK tasks are auto-tracked when mining the OneBlock.
+  # KILL tasks are tracked when the player kills mobs anywhere.
+  # ---------------------------------------------------------------------------
+  mines:
+    name: '&8The Mines'
+    color: WHITE
+    style: SEGMENTED_10
+    length: 24
+    tasks:
+      - id: break_stone
+        type: BREAK
+        target: STONE
+        amount: 8
+        group: mining
+      - id: break_iron
+        type: BREAK
+        target: IRON_ORE
+        amount: 4
+        group: mining
+      - id: kill_skeleton
+        type: KILL
+        target: SKELETON
+        amount: 3
+        group: combat
+    # To complete this level you must finish EITHER mining OR combat tasks
+    completion_requirement: 'mining OR combat'
+    next_themes:
+      - desert
+      - ocean
+    pool:
+      - STONE
+      - COBBLESTONE
+      - COAL_ORE
+      - IRON_ORE
+      - COPPER_ORE
+      - GOLD_ORE
+      - DEEPSLATE
+      - DEEPSLATE_COAL_ORE
+      - DEEPSLATE_IRON_ORE
+      - SKELETON
+      - CAVE_SPIDER
+
+  # ---------------------------------------------------------------------------
+  # Level 3A: Desert (branch from Mines)
+  # ---------------------------------------------------------------------------
+  # Chosen via the theme-selection GUI when Mines completes.
+  # Demonstrates PLACE tasks and decorated blocks with rare decorations.
+  # ---------------------------------------------------------------------------
+  desert:
+    name: '&eDesert'
+    color: YELLOW
+    style: SEGMENTED_12
+    length: 20
+    tasks:
+      - id: place_cactus
+        type: PLACE
+        target: CACTUS
+        amount: 5
+        group: builder
+      - id: place_sandstone
+        type: PLACE
+        target: SANDSTONE
+        amount: 8
+        group: builder
+      - id: kill_husk
+        type: KILL
+        target: HUSK
+        amount: 4
+        group: hunter
+    # Both builder and hunter groups must be complete
+    completion_requirement: 'builder AND hunter'
+    # After Desert, continue to the Nether Gateway
+    next_themes:
+      - nether
+    pool:
+      - SAND
+      - SANDSTONE
+      - RED_SAND
+      - RED_SANDSTONE
+      - CACTUS
+      - DEAD_BUSH
+      # Rare decorated sand: 1-in-8 chance of a dead bush on top
+      - decorated: SAND
+        chance: 8
+        offset_y: 1
+        decorations:
+          - DEAD_BUSH
+      - HUSK
+      - RABBIT
+
+  # ---------------------------------------------------------------------------
+  # Level 3B: Ocean (branch from Mines)
+  # ---------------------------------------------------------------------------
+  # Alternate branch. Demonstrates FISH tasks and a vanilla loot_table chest.
+  # ---------------------------------------------------------------------------
+  ocean:
+    name: '&bOcean'
+    color: BLUE
+    style: SOLID
+    length: 20
+    tasks:
+      - id: catch_fish
+        type: FISH
+        target: FISH
+        amount: 6
+        group: angler
+      - id: kill_guardian
+        type: KILL
+        target: GUARDIAN
+        amount: 2
+        group: combat
+    completion_requirement: 'any'
+    # After Ocean, continue to the Nether Gateway
+    next_themes:
+      - nether
+    pool:
+      - PRISMARINE
+      - PRISMARINE_BRICKS
+      - DARK_PRISMARINE
+      - SEA_LANTERN
+      # Vanilla loot table: fills a chest with underwater-loot
+      - loot_table: 'minecraft:chests/shipwreck_supply'
+      - SAND
+      - CLAY
+      - TUBE_CORAL_BLOCK
+      - BRAIN_CORAL_BLOCK
+      - GUARDIAN
+      - DOLPHIN
+      - SQUID
+
+  # ---------------------------------------------------------------------------
+  # Level 4: Nether Gateway
+  # ---------------------------------------------------------------------------
+  # A classic break-count level with no tasks.  Heavy mob presence.
+  # ---------------------------------------------------------------------------
+  nether:
+    name: '&cNether Gateway'
+    color: RED
+    style: SEGMENTED_20
+    length: 28
+    pool:
+      - NETHERRACK
+      - SOUL_SAND
+      - SOUL_SOIL
+      - BLACKSTONE
+      - GLOWSTONE
+      - NETHER_GOLD_ORE
+      - ANCIENT_DEBRIS
+      - decorated: NETHERRACK
+        chance: 5
+        offset_y: 1
+        decorations:
+          - FIRE
+          - SOUL_TORCH
+      - ZOMBIFIED_PIGLIN
+      - BLAZE
+      - GHAST
+      - MAGMA_CUBE
+      - WITHER_SKELETON
+      - PIGLIN
+
+  # ---------------------------------------------------------------------------
+  # Level 5: Treasure
+  # ---------------------------------------------------------------------------
+  # Demonstrates legacy chest aliases (defined in chests.yml) alongside
+  # custom commands that run when the block regenerates.
+  # ---------------------------------------------------------------------------
+  treasure:
+    name: '&6Treasure'
+    color: YELLOW
+    style: SOLID
+    length: 12
+    pool:
+      # Legacy chest aliases from chests.yml
+      - chest: small_chest
+      - chest: medium_chest
+      - chest: high_chest
+      # Commands are executed as console when this pool entry is chosen.
+      # %player% is replaced with the breaker''s name (if supported).
+      - command: '/say %player% struck lucky!'
+      - GOLD_BLOCK
+      - DIAMOND_BLOCK
+      - EMERALD_BLOCK
+      - IRON_BLOCK
+      - OBSIDIAN
+      - ENDER_CHEST
+      - PIGLIN_BRUTE
+      - ENDERMAN
+
+  # ---------------------------------------------------------------------------
+  # Level 6: Deep Dark
+  # ---------------------------------------------------------------------------
+  # Demonstrates CRAFT tasks alongside decorated sculk blocks.
+  # ---------------------------------------------------------------------------
+  deep_dark:
+    name: '&5Deep Dark'
+    color: PURPLE
+    style: SEGMENTED_6
+    length: 24
+    tasks:
+      - id: craft_torch
+        type: CRAFT
+        target: TORCH
+        amount: 16
+        group: survival
+      - id: break_sculk
+        type: BREAK
+        target: SCULK
+        amount: 10
+        group: explorer
+    completion_requirement: 'survival AND explorer'
+    # After Deep Dark, continue to The End
+    next_themes:
+      - end
+    pool:
+      - SCULK
+      - SCULK_CATALYST
+      - SCULK_SENSOR
+      - SCULK_SHRIEKER
+      - DEEPSLATE
+      - COBBLED_DEEPSLATE
+      - DEEPSLATE_GOLD_ORE
+      - DEEPSLATE_DIAMOND_ORE
+      - DEEPSLATE_EMERALD_ORE
+      - DEEPSLATE_REDSTONE_ORE
+      - WARDEN
+
+  # ---------------------------------------------------------------------------
+  # Level 7: The End
+  # ---------------------------------------------------------------------------
+  # Final themed level before MAX. Uses legacy break-count progression.
+  # ---------------------------------------------------------------------------
+  end:
+    name: '&dThe End'
+    color: PINK
+    style: SEGMENTED_20
+    length: 32
+    pool:
+      - END_STONE
+      - END_STONE_BRICKS
+      - PURPUR_BLOCK
+      - PURPUR_PILLAR
+      - OBSIDIAN
+      - CRYING_OBSIDIAN
+      - DRAGON_HEAD
+      - END_ROD
+      - CHORUS_FLOWER
+      - CHORUS_PLANT
+      - ENDERMAN
+      - SHULKER
+      - ENDERMITE
+      - PHANTOM
+      # A command that gives the player a tiny reward
+      - command: '/experience add %player% 10'

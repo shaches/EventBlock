@@ -1,0 +1,43 @@
+name:  EventBlock
+main:  oneblock.Oneblock
+version: ${project.version}
+api-version: 1.16
+prefix: EventBlock
+author:  shaches
+website: https://github.com/shaches/EventBlock
+loadbefore: ['Multiverse-Core']
+softdepend: ['PlaceholderAPI', 'WorldGuard', 'ItemsAdder', 'Oraxen', 'Nexo', 'CraftEngine']
+
+commands:
+  oneblock:
+    description: Oneblock main command.
+    aliases: ob
+    usage: Are you using the command incorrectly?
+    permission: oneblock.join
+    permission-message: You don't have permission to use this command.
+
+permissions:
+    oneblock.set:
+        description: Access to admin commands and settings
+        default: op
+    oneblock.join:
+        description: Main permission
+        default: true
+    oneblock.invite:
+        description: Allows you to invite other players to your island to play together
+        default: true
+    oneblock.kick:
+        description: Allows the island owner to kick members from their team
+        default: true
+    oneblock.visit:
+        description: Allows visiting other players islands
+        default: false
+    oneblock.ignorebarrier:
+        description: Allows bypassing island barriers and restrictions
+        default: op
+    oneblock.idreset:
+        description: Allows resetting your island ID
+        default: true
+    oneblock.allow_visit:
+        description: Allow players to open their island for visitors
+        default: op

@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4.2.2
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4.2.2
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Verify tag matches project version
+      run: |
+        version="$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)"
+        expected_tag="v${version}"
+        if [ "${GITHUB_REF_NAME}" != "${expected_tag}" ]; then
+          echo "Tag ${GITHUB_REF_NAME} does not match project version ${version}; expected ${expected_tag}."
+          exit 1
+        fi
+
+    - name: Run release gates
+      run: mvn -B -Pci verify
+
+    - name: Build with reproducible builds
+      run: mvn -B clean package -DskipTests -Dproject.build.outputTimestamp=2024-01-01T00:00:00Z
+
+    - name: Generate checksums
+      run: |
+        cd target
+        jar="$(ls EventBlock-*.jar | head -n 1)"
+        sha256sum "$jar" > "$jar.sha256"
+        md5sum "$jar" > "$jar.md5"
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          target/EventBlock-*.jar
+          target/EventBlock-*.jar.sha256
+          target/EventBlock-*.jar.md5
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
