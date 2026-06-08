@@ -21,7 +21,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<junit.version>5.11.4</junit.version>
 		<mockito.version>5.14.2</mockito.version>
-		<assertj.version>3.26.3</assertj.version>
+		<assertj.version>3.27.7</assertj.version>
 		<!-- Static-analysis tooling versions -->
 		<spotless.version>2.44.3</spotless.version>
 		<jacoco.version>0.8.13</jacoco.version>
