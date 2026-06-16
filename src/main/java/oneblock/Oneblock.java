@@ -409,15 +409,15 @@ public class Oneblock extends JavaPlugin {
       final int playerX, final int playerZ, final Block block, final Level levelInfo) {
     PoolEntry entry = levelInfo.blockPool.pick(rnd);
     if (entry == null) entry = PoolEntry.GRASS;
-    placePoolEntry(block, entry, playerX, playerZ);
+    placePoolEntry(block, entry);
 
     if (rnd.nextInt(SETTINGS.mobSpawnChance) == 0) spawnRandomMob(playerX, playerZ, levelInfo);
   }
 
-  private void placePoolEntry(Block block, PoolEntry entry, int playerX, int playerZ) {
+  private void placePoolEntry(Block block, PoolEntry entry) {
     switch (entry.kind) {
       case DECORATED_BLOCK:
-        placeDecorated(block, (DecoratedBlock) entry.value, playerX, playerZ);
+        placeDecorated(block, (DecoratedBlock) entry.value);
         break;
       case BLOCK:
         placer.setType(block, entry.value, SETTINGS.physics);
@@ -452,14 +452,15 @@ public class Oneblock extends JavaPlugin {
     }
   }
 
-  private void placeDecorated(Block block, DecoratedBlock d, int playerX, int playerZ) {
-    XBlock.setType(block, d.base());
+  private void placeDecorated(Block block, DecoratedBlock d) {
+    XBlock.setType(block, d.base(), SETTINGS.physics);
     if (d.chance() > 0 && rnd.nextInt(d.chance()) == 0) {
       List<XMaterial> decos = d.decorations() != null ? d.decorations() : flowers;
       if (!decos.isEmpty()) {
         XBlock.setType(
-            getWorld().getBlockAt(playerX, getY() + d.offsetY(), playerZ),
-            decos.get(rnd.nextInt(decos.size())));
+            block.getRelative(0, d.offsetY(), 0),
+            decos.get(rnd.nextInt(decos.size())),
+            SETTINGS.physics);
       }
     }
   }
