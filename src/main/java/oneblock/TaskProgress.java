@@ -37,8 +37,17 @@ public final class TaskProgress {
    * @return the new counter value after increment
    */
   public int increment(String taskId) {
+    return increment(taskId, 1);
+  }
+
+  /**
+   * Atomically add {@code amount} to the counter for the given task id.
+   *
+   * @return the new counter value after increment
+   */
+  public int increment(String taskId, int amount) {
     AtomicInteger ai = counters.computeIfAbsent(taskId, k -> new AtomicInteger(0));
-    return ai.incrementAndGet();
+    return ai.addAndGet(amount);
   }
 
   /** Set the counter for a task id (used during deserialization / admin commands). */

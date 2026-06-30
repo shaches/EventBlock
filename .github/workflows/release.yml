@@ -19,13 +19,14 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v4.2.2
       with:
-        java-version: '21'
+        java-version: '25'
         distribution: 'temurin'
-        cache: maven
+        cache: gradle
 
     - name: Verify tag matches project version
       run: |
-        version="$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)"
+        chmod +x ./gradlew
+        version="$(./gradlew -q printVersion)"
         expected_tag="v${version}"
         if [ "${GITHUB_REF_NAME}" != "${expected_tag}" ]; then
           echo "Tag ${GITHUB_REF_NAME} does not match project version ${version}; expected ${expected_tag}."
@@ -33,15 +34,17 @@ jobs:
         fi
 
     - name: Run release gates
-      run: mvn -B -Pci verify
+      run: ./gradlew --no-daemon ci
 
-    - name: Build with reproducible builds
-      run: mvn -B clean package -DskipTests -Dproject.build.outputTimestamp=2024-01-01T00:00:00Z
+    - name: Build reproducible plugin jar
+      run: ./gradlew --no-daemon clean shadowJar -x test
 
     - name: Generate checksums
       run: |
-        cd target
-        jar="$(ls EventBlock-*.jar | head -n 1)"
+        version="$(./gradlew -q printVersion)"
+        cd build/libs
+        jar="EventBlock-${version}.jar"
+        test -f "$jar"
         sha256sum "$jar" > "$jar.sha256"
         md5sum "$jar" > "$jar.md5"
 
@@ -49,9 +52,9 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          target/EventBlock-*.jar
-          target/EventBlock-*.jar.sha256
-          target/EventBlock-*.jar.md5
+          build/libs/EventBlock-*.jar
+          build/libs/EventBlock-*.jar.sha256
+          build/libs/EventBlock-*.jar.md5
         draft: false
         prerelease: false
         generate_release_notes: true

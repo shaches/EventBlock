@@ -38,6 +38,17 @@
 
 MaxLevel: 'Level: &4&lMAX'
 
+legacy_mapping:
+  0: grass_starter
+  1: forest
+  2: mines
+  3: desert
+  4: ocean
+  5: nether
+  6: treasure
+  7: deep_dark
+  8: end
+
 levels:
   # ---------------------------------------------------------------------------
   # Level 0: Grass Starter

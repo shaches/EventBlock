@@ -26,35 +26,37 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v4.2.2
       with:
-        java-version: '21'
+        java-version: '25'
         distribution: 'temurin'
-        cache: maven
+        cache: gradle
 
-    # Full `verify` with the `ci` profile activates deterministic release gates:
-    #   - JUnit 5 tests (Surefire)
+    # Full `ci` runs deterministic release gates:
+    #   - JUnit 5 tests
     #   - Spotless googleJavaFormat
-    #   - JaCoCo coverage report (target/site/jacoco/)
+    #   - JaCoCo coverage report (build/reports/jacoco/test/html/)
     #   - SpotBugs + FindSecBugs static analysis
-    #   - maven-shade produces the plugin jar under target/
+    #   - Shadow produces the plugin jar under build/libs/
     - name: Build and run CI gates
-      run: mvn -B -Pci verify
+      run: |
+        chmod +x ./gradlew
+        ./gradlew --no-daemon ci
 
     - name: Upload plugin jar
       uses: actions/upload-artifact@v4
       with:
         name: plugin-jar
-        path: target/EventBlock-*.jar
+        path: build/libs/EventBlock-*.jar
 
     - name: Upload JaCoCo coverage report
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: jacoco-report
-        path: target/site/jacoco/
+        path: build/reports/jacoco/test/html/
 
-    - name: Upload Surefire test reports
+    - name: Upload test reports
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: surefire-reports
-        path: target/surefire-reports/
+        name: test-reports
+        path: build/test-results/test/

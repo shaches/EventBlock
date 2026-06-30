@@ -78,6 +78,7 @@ public final class CommandHandler implements CommandExecutor {
     register(new oneblock.command.sub.ChestCommand());
     register(new oneblock.command.sub.BorderCommand());
     register(new oneblock.command.sub.GuiCommand());
+    register(new oneblock.command.sub.AdminCommand());
     // 11 admin bool-toggles backed by the shared impl.
     register(new oneblock.command.sub.BoolToggleCommand("circlemode"));
     register(new oneblock.command.sub.BoolToggleCommand("useemptyislands"));
@@ -89,6 +90,8 @@ public final class CommandHandler implements CommandExecutor {
     register(new oneblock.command.sub.BoolToggleCommand("allow_nether"));
     register(new oneblock.command.sub.BoolToggleCommand("saveplayerinventory"));
     register(new oneblock.command.sub.BoolToggleCommand("rebirth_on_the_island"));
+    // Debug command for testing task progress
+    register(new oneblock.command.sub.DebugTasksCommand());
   }
 
   public static boolean idresetCommand(OfflinePlayer pl) {

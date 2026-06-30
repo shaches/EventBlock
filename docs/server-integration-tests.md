@@ -30,24 +30,24 @@ docker ps
 
 ### Run All Integration Tests (Fast)
 ```bash
-mvn verify
+./gradlew test
 ```
 This runs only the fast database integration tests (DatabaseManagerIT) using H2 in-memory database.
 
 ### Run Server Tests with TestContainers
 ```bash
-mvn verify -Pserver-tests
+./gradlew serverTest
 ```
 This enables TestContainers-based server integration tests, including MySQL container tests. The project uses the official Testcontainers artifacts from Maven Central. Publishing should not vendor or replace Testcontainers.
 
 ### Run Only Server Tests (Skip Unit Tests)
 ```bash
-mvn verify -Pserver-tests -DskipUnitTests
+./gradlew serverTest
 ```
 
 ### Run with Verbose Output
 ```bash
-mvn verify -Pserver-tests -X
+./gradlew serverTest --info
 ```
 
 ## Test Files
@@ -89,7 +89,7 @@ Tests plugin with real server environment (currently basic):
 ### Windows Specific Issues
 Testcontainers Docker detection can be unreliable on some Windows/WSL2 setups even when `docker ps`
 works from the shell. If server tests fail locally on Windows, run the normal unit/build commands
-without `-Pserver-tests` and use Linux/macOS or CI with native Docker for container verification.
+without `serverTest` and use Linux/macOS or CI with native Docker for container verification.
 
 **Error**: `java.nio.file.InvalidPathException`
 
@@ -125,7 +125,7 @@ When developing new server integration tests:
 
 1. Write the test in `OneblockServerIT.java`
 2. Use `@EnabledIf("testcontainersEnabled")` to disable by default
-3. Run with `-Pserver-tests` to test locally
+3. Run with `./gradlew serverTest` to test locally
 4. Verify cleanup happens in `@AfterEach`
 5. Keep tests focused on critical paths (avoid testing everything)
 

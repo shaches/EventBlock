@@ -191,6 +191,7 @@ public final class PlayerInfo {
               + " field is only used by legacy code paths. Will be removed once migration is"
               + " complete.")
   public void syncLegacyFields() {
+    reconcileCurrentLevelId();
     if (currentLevelId != null) {
       int idx = LevelRegistry.getIndex(currentLevelId);
       if (idx >= 0) {
@@ -213,6 +214,17 @@ public final class PlayerInfo {
     if (current != null && current.tasks != null && !current.tasks.isEmpty()) {
       breaks = 0;
     }
+  }
+
+  public Level reconcileCurrentLevelId() {
+    Level current = LevelRegistry.get(currentLevelId);
+    if (current != null && current != Level.max) return current;
+    Level indexed = Level.get(lvl);
+    if (indexed != null && indexed != Level.max && indexed.id != null) {
+      currentLevelId = indexed.id;
+      return indexed;
+    }
+    return current;
   }
 
   @SuppressFBWarnings(
@@ -242,13 +254,13 @@ public final class PlayerInfo {
   }
 
   public void createBar() {
-    Level level = LevelRegistry.get(currentLevelId);
+    Level level = reconcileCurrentLevelId();
     if (level == Level.max) level = Level.get(lvl);
     createBar(level.name, level.color, level.style);
   }
 
   public void createBar(String title) {
-    Level level = LevelRegistry.get(currentLevelId);
+    Level level = reconcileCurrentLevelId();
     if (level == Level.max) level = Level.get(lvl);
     createBar(title, level.color, level.style);
   }
@@ -315,13 +327,13 @@ public final class PlayerInfo {
    * to reverse-engineer from context. The new name is self-describing.
    */
   public int getRequiredBreaks() {
-    Level level = LevelRegistry.get(currentLevelId);
+    Level level = reconcileCurrentLevelId();
     if (level == Level.max) level = Level.get(lvl);
     return level.length;
   }
 
   public double getPercent() {
-    Level level = LevelRegistry.get(currentLevelId);
+    Level level = reconcileCurrentLevelId();
     if (level == Level.max) level = Level.get(lvl);
     if (level.tasks != null && !level.tasks.isEmpty()) {
       return taskProgress.getCompletedGroupRatio(level);
@@ -342,6 +354,7 @@ public final class PlayerInfo {
     if (!LevelRegistry.isValidLevelId(nextLevelId)) {
       return null;
     }
+    reconcileCurrentLevelId();
     if (!waitingForThemeSelection || !LevelGraph.isSuccessor(currentLevelId, nextLevelId)) {
       return null;
     }

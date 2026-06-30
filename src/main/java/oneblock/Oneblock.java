@@ -20,6 +20,7 @@ import oneblock.events.TeleportEvent;
 import oneblock.events.TeleportNetherEvent;
 import oneblock.gui.GUI;
 import oneblock.gui.GUIListener;
+import oneblock.gui.dialog.DialogMenuListener;
 import oneblock.loot.LootTableDispatcher;
 import oneblock.placement.Place;
 import oneblock.storage.DatabaseManager;
@@ -219,7 +220,7 @@ public class Oneblock extends JavaPlugin {
   }
 
   public static String getBarTitle(Player p, PlayerInfo inf) {
-    Level level = LevelRegistry.get(inf.currentLevelId);
+    Level level = inf.reconcileCurrentLevelId();
     if (level == null || level == Level.max) level = Level.get(inf.lvl);
     if (SETTINGS.lvlBarMode) return level.name;
     if (plugin.PAPI) return PlaceholderAPI.setPlaceholders(p, SETTINGS.phText);
@@ -274,6 +275,7 @@ public class Oneblock extends JavaPlugin {
     pluginManager.registerEvents(new TeleportEvent(), this);
     pluginManager.registerEvents(new BlockEvent(), this);
     pluginManager.registerEvents(new GUIListener(), this);
+    pluginManager.registerEvents(new DialogMenuListener(), this);
     pluginManager.registerEvents(new TeleportNetherEvent(), this);
     pluginManager.registerEvents(new TaskEventListener(), this);
     if (placetype == Place.Type.ItemsAdder)
@@ -362,7 +364,7 @@ public class Oneblock extends JavaPlugin {
   private Level updatePlayerProgression(
       final int plID, final Player ponl, final org.bukkit.Material brokenType) {
     final PlayerInfo inf = PlayerInfo.get(plID);
-    Level levelInfo = LevelRegistry.get(inf.currentLevelId);
+    Level levelInfo = inf.reconcileCurrentLevelId();
     if (levelInfo == null || levelInfo == Level.max) levelInfo = Level.get(inf.lvl);
 
     // Phase 2: task-based progression
@@ -643,7 +645,7 @@ public class Oneblock extends JavaPlugin {
 
   public static String getLevelName(UUID playerUuid) {
     PlayerInfo inf = PlayerInfo.get(playerUuid);
-    Level level = LevelRegistry.get(inf.currentLevelId);
+    Level level = inf.reconcileCurrentLevelId();
     if (level == null || level == Level.max) level = Level.get(inf.lvl);
     return level.name;
   }

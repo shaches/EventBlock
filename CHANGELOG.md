@@ -17,10 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command rate limiting and level ID validation hardening.
 - MockBukkit, parameterized tests, Testcontainers dependencies, JaCoCo, Spotless, SpotBugs, FindSecBugs, and opt-in dependency-check/PIT profiles.
 - GitHub CI, release, CodeQL, Dependabot, issue templates, security policy, and server integration test documentation.
+- Paper dialog-based GUI menus for main navigation, progress, rewards, branch previews, visits, invites, island status, and reset confirmation on latest Minecraft/Paper builds.
+- Admin diagnostics and task-progress debug commands for validating runtime state and task counters.
+- Gradle build, wrapper, CI, and release workflows targeting Java 25 and the latest Paper API.
 
 ### Changed
 - Bumped the plugin from the previous `0.0.3-SNAPSHOT` state to `0.0.4` for publishing.
 - Updated the build to Java 21 and Maven 3.9+ with filtered `plugin.yml` metadata.
+- Replaced the Maven build with Gradle/Shadow while keeping reproducible shaded plugin artifacts under `build/libs/`.
+- Updated GitHub CI and release automation to use Gradle tasks, Gradle caching, and Gradle report/artifact paths.
+- Raised plugin metadata to `api-version: '1.21'` for latest Minecraft-only builds.
 - Replaced json-simple persistence code with Gson serialization.
 - Refactored large static/global systems into smaller command, storage, placement, task, config, and utility classes.
 - Updated dependency coordinates for modern Spigot, PlaceholderAPI, XSeries, Oraxen, Nexo, HikariCP, MySQL, H2, and test libraries.
@@ -39,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tightened level advancement so GUI choices can only advance to direct successor levels while awaiting selection.
 - Corrected WorldGuard enablement semantics while keeping unavailable integrations disabled.
 - Fixed release workflow checksum generation to produce deterministic checksum file names.
+- Reconciled legacy numeric level indexes with level IDs before progress, boss bar, and GUI calculations.
+- Added legacy level mapping defaults for existing configured worlds.
 
 ### Security
 - Added command spam rate limiting.
@@ -49,7 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Testing
 - Expanded regression coverage for config parsing, task progress, persistence, DB loading, cache snapshots, progression validation, decorated blocks, rewards, commands, coordinates, and migration behavior.
 - Added server integration test profile documentation for optional Testcontainers-based verification.
+- Added dialog menu manager coverage and expanded task-progress persistence checks.
 - Verified release-prep build with `mvn -B test`, `mvn -B spotless:check`, `mvn -B -Pci verify`, `mvn -B dependency:tree "-Dincludes=org.testcontainers"`, and `mvn -B -DskipTests clean package`.
+- Verified Gradle migration with `./gradlew.bat test`, `./gradlew.bat spotlessCheck`, `./gradlew.bat ci`, and `./gradlew.bat --no-daemon clean shadowJar -x test`.
 
 ## [0.0.2] - Previous
 

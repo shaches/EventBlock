@@ -1,25 +1,14 @@
 package oneblock.gui;
 
-import com.cryptomorin.xseries.XMaterial;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import oneblock.ChestItems;
-import oneblock.LevelRegistry;
-import oneblock.Messages;
-import oneblock.PlayerInfo;
-import oneblock.context.PluginContext;
 import oneblock.worldguard.OBWorldGuard;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
 public class GUI {
   public static class Config {
@@ -28,7 +17,6 @@ public class GUI {
   }
 
   private static Config config = new Config();
-  static Inventory topGUI = null;
 
   public static Config getConfig() {
     return config;
@@ -39,140 +27,19 @@ public class GUI {
   }
 
   public static void openGUI(Player p) {
-    if (!config.enabled) return;
-    if (p == null) return;
-    PluginContext ctx = PluginContext.get();
-    String baseTitle = ctx != null ? ctx.messages().baseGUI() : Messages.baseGUI();
-    String idresetDesc = ctx != null ? ctx.messages().idresetGUI() : Messages.idresetGUI();
-    Inventory mainGUI =
-        Bukkit.createInventory(new GUIHolder(GUIHolder.GUIType.MAIN_MENU), 18, baseTitle);
-    mainGUI.addItem(setMeta(XMaterial.GRASS_BLOCK, ChatColor.GREEN + "/ob join"));
-    mainGUI.setItem(9, setMeta(XMaterial.PODZOL, ChatColor.GREEN + "/ob leave"));
-    if (p.hasPermission("oneblock.visit"))
-      mainGUI.setItem(2, setMeta(XMaterial.MELON, ChatColor.GREEN + "/ob visit"));
-    if (p.hasPermission("oneblock.allow_visit"))
-      mainGUI.setItem(10, setMeta(XMaterial.EMERALD_BLOCK, ChatColor.GREEN + "/ob allow_visit"));
-    mainGUI.setItem(4, setMeta(XMaterial.GOLD_BLOCK, ChatColor.GOLD + "/ob top"));
-    mainGUI.setItem(6, setMeta(XMaterial.PAPER, ChatColor.GRAY + "/ob help"));
-    if (p.hasPermission("oneblock.idreset"))
-      mainGUI.setItem(8, setMeta(XMaterial.BARRIER, ChatColor.RED + "/ob idreset", idresetDesc));
-
-    p.openInventory(mainGUI);
+    DialogGUI.openMain(p);
   }
 
   public static void acceptGUI(Player p, String name) {
-    if (!config.enabled) return;
-    if (p == null) return;
-    PluginContext ctx = PluginContext.get();
-    String acceptTitle = ctx != null ? ctx.messages().acceptGUI() : Messages.acceptGUI();
-    String ignoreText = ctx != null ? ctx.messages().acceptGUIignore() : Messages.acceptGUIignore();
-    String joinFormat = ctx != null ? ctx.messages().acceptGUIjoin() : Messages.acceptGUIjoin();
-    String idresetDesc = ctx != null ? ctx.messages().idresetGUI() : Messages.idresetGUI();
-    Inventory acceptGUI =
-        Bukkit.createInventory(new GUIHolder(GUIHolder.GUIType.INVITE), 9, acceptTitle);
-    acceptGUI.setItem(6, setMeta(XMaterial.REDSTONE_BLOCK, ignoreText));
-    acceptGUI.setItem(
-        2, setMeta(XMaterial.EMERALD_BLOCK, String.format(joinFormat, name), idresetDesc));
-    p.openInventory(acceptGUI);
+    DialogGUI.openInvite(p, name);
   }
 
   public static void topGUI(Player p) {
-    if (!config.enabled) return;
-    if (p == null) return;
-    PluginContext ctx = PluginContext.get();
-    String topTitle = ctx != null ? ctx.messages().topGUI() : Messages.topGUI();
-    if (topGUI == null)
-      topGUI = Bukkit.createInventory(new GUIHolder(GUIHolder.GUIType.TOP), 27, topTitle);
-
-    List<PlayerInfo> toplist = oneblock.Oneblock.getTopList();
-
-    PlayerInfo inf = oneblock.Oneblock.getTop(0, toplist);
-    topGUI.setItem(
-        4,
-        setMeta(
-            XMaterial.NETHERITE_BLOCK,
-            ChatColor.GOLD + "1st - " + parseUUID(inf.uuid),
-            getLevelDisplay(inf),
-            parseUUIDs(inf.uuids)));
-    inf = oneblock.Oneblock.getTop(1, toplist);
-    topGUI.setItem(
-        12,
-        setMeta(
-            XMaterial.DIAMOND_BLOCK,
-            ChatColor.GRAY + "2nd - " + parseUUID(inf.uuid),
-            getLevelDisplay(inf),
-            parseUUIDs(inf.uuids)));
-    inf = oneblock.Oneblock.getTop(2, toplist);
-    topGUI.setItem(
-        14,
-        setMeta(
-            XMaterial.IRON_BLOCK,
-            ChatColor.GRAY + "3rd - " + parseUUID(inf.uuid),
-            getLevelDisplay(inf),
-            parseUUIDs(inf.uuids)));
-    inf = oneblock.Oneblock.getTop(3, toplist);
-    topGUI.setItem(
-        20,
-        setMeta(
-            XMaterial.GOLD_BLOCK,
-            ChatColor.DARK_RED + "4th - " + parseUUID(inf.uuid),
-            getLevelDisplay(inf),
-            parseUUIDs(inf.uuids)));
-    inf = oneblock.Oneblock.getTop(4, toplist);
-    topGUI.setItem(
-        22,
-        setMeta(
-            XMaterial.COPPER_BLOCK,
-            ChatColor.DARK_RED + "5th - " + parseUUID(inf.uuid),
-            getLevelDisplay(inf),
-            parseUUIDs(inf.uuids)));
-    inf = oneblock.Oneblock.getTop(5, toplist);
-    topGUI.setItem(
-        24,
-        setMeta(
-            XMaterial.COAL_BLOCK,
-            ChatColor.DARK_RED + "6th - " + parseUUID(inf.uuid),
-            getLevelDisplay(inf),
-            parseUUIDs(inf.uuids)));
-    p.openInventory(topGUI);
-  }
-
-  private static int getLevelDisplay(PlayerInfo inf) {
-    int idx = LevelRegistry.getIndex(inf.currentLevelId);
-    return idx >= 0 ? idx : inf.lvl;
+    DialogGUI.openTop(p);
   }
 
   public static void visitGUI(Player p, OfflinePlayer[] offlinePlayers) {
-    if (!config.enabled) return;
-    if (p == null) return;
-    PluginContext ctx = PluginContext.get();
-    String visitTitle = ctx != null ? ctx.messages().visitGUI() : Messages.visitGUI();
-    Inventory visitGUI =
-        Bukkit.createInventory(new GUIHolder(GUIHolder.GUIType.VISIT), 54, visitTitle);
-    ArrayList<OfflinePlayer> matchedPlayers = new ArrayList<>();
-    for (OfflinePlayer pl : offlinePlayers) {
-      PlayerInfo inf = PlayerInfo.get(pl.getUniqueId());
-      if (inf == null) continue;
-      if (!inf.allowVisit) continue;
-      matchedPlayers.add(pl);
-    }
-    int size = Math.min(matchedPlayers.size(), 54);
-    for (int i = 0; i < size; i++) {
-      OfflinePlayer pl = matchedPlayers.get(i);
-      visitGUI.setItem(i, getPlayerHead(pl, pl.getName() != null ? pl.getName() : "Unknown"));
-    }
-    p.openInventory(visitGUI);
-  }
-
-  public static ItemStack getPlayerHead(OfflinePlayer player, String title) {
-    ItemStack skull = XMaterial.PLAYER_HEAD.parseItem();
-    if (skull == null) return new ItemStack(Material.PLAYER_HEAD);
-    SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
-    if (skullMeta == null) return skull;
-    if (!config.legacy) skullMeta.setOwningPlayer(player);
-    skullMeta.setDisplayName(title);
-    skull.setItemMeta(skullMeta);
-    return skull;
+    DialogGUI.openVisit(p, offlinePlayers);
   }
 
   /**
@@ -201,45 +68,5 @@ public class GUI {
       if (itm != null) chestGUI.addItem(itm);
     }
     p.openInventory(chestGUI);
-  }
-
-  /**
-   * Render a UUID as a display name for GUI lore. Intentionally swallows any exception from {@link
-   * Bukkit#getOfflinePlayer(UUID)} (can NPE on null input, and some server forks throw on
-   * unresolvable UUIDs). Returning {@code "Unknown"} is the correct UX for a stale/missing invitee
-   * entry; this runs in the hot GUI-render path, so no log is emitted.
-   */
-  private static String parseUUID(UUID uuid) {
-    try {
-      return Bukkit.getOfflinePlayer(uuid).getName();
-    } catch (Exception e) {
-      return "Unknown";
-    }
-  }
-
-  private static String[] parseUUIDs(List<UUID> uuids) {
-    String[] Lore = new String[uuids.size()];
-    for (int i = 0; i < uuids.size(); i++) Lore[i] = parseUUID(uuids.get(i));
-    return Lore;
-  }
-
-  private static ItemStack setMeta(XMaterial material, String title) {
-    return setMeta(material, title, 1);
-  }
-
-  private static ItemStack setMeta(XMaterial material, String title, String... Lore) {
-    return setMeta(material, title, 1, Lore);
-  }
-
-  private static ItemStack setMeta(XMaterial material, String title, int amount, String... Lore) {
-    if (amount <= 0) amount = 1;
-    Material m = material.get();
-    ItemStack join = new ItemStack(m == null ? Material.EMERALD_BLOCK : m, amount);
-    ItemMeta meta = join.getItemMeta();
-    if (meta == null) return join;
-    meta.setDisplayName(title);
-    meta.setLore(Arrays.asList(Lore));
-    join.setItemMeta(meta);
-    return join;
   }
 }

@@ -152,4 +152,46 @@ public final class RewardManager {
   public void reload() {
     loadRewards();
   }
+
+  public List<String> previewCompletionRewards(Player player, String levelId, String levelName) {
+    List<String> specific = levelIdRewards.get(levelId + ":complete");
+    if (specific == null) specific = levelIdRewards.get(levelId);
+    return previewRewards(player, levelId, levelName, specific);
+  }
+
+  public List<String> previewAdvanceRewards(Player player, String levelId, String levelName) {
+    List<String> specific = levelIdRewards.get(levelId + ":advance");
+    if (specific == null) specific = levelIdRewards.get(levelId);
+    return previewRewards(player, levelId, levelName, specific);
+  }
+
+  private List<String> previewRewards(
+      Player player, String levelIdentifier, String levelName, List<String> specificRewards) {
+    String playerName = player == null ? "%nick%" : player.getName();
+    if (playerName == null || !SAFE_PLAYER_NAME.matcher(playerName).matches()) {
+      playerName = "%nick%";
+    }
+    Map<String, String> placeholders = new HashMap<>();
+    placeholders.put("%nick%", playerName);
+    placeholders.put("%lvl_number%", levelIdentifier);
+    placeholders.put("%lvl_name%", levelName == null ? "" : levelName);
+
+    List<String> preview = new ArrayList<>();
+    preview.addAll(applyPlaceholders(allRewards, placeholders));
+    if (specificRewards != null) preview.addAll(applyPlaceholders(specificRewards, placeholders));
+    return preview;
+  }
+
+  private List<String> applyPlaceholders(List<String> commands, Map<String, String> placeholders) {
+    List<String> result = new ArrayList<>();
+    if (commands == null) return result;
+    for (String command : commands) {
+      String finalCommand = command;
+      for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+        finalCommand = finalCommand.replace(entry.getKey(), entry.getValue());
+      }
+      result.add(finalCommand);
+    }
+    return result;
+  }
 }

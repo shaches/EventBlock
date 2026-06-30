@@ -148,6 +148,26 @@ class DualWriteConsistencyTest {
   }
 
   @Test
+  @DisplayName("advanceToLevel reconciles legacy currentLevelId before successor check")
+  void advanceToLevelReconcilesLegacyCurrentLevelId() {
+    Level mines = makeLevel("mines", 2);
+    mines.nextThemes.add("desert");
+    publishLevels(
+        makeLevel("grass_starter", 0), makeLevel("forest", 1), mines, makeLevel("desert", 3));
+
+    PlayerInfo inf = new PlayerInfo(U);
+    inf.currentLevelId = "level_2";
+    inf.lvl = 2;
+    inf.waitingForThemeSelection = true;
+
+    Level next = inf.advanceToLevel("desert");
+
+    assertThat(next).isNotNull();
+    assertThat(inf.currentLevelId).isEqualTo("desert");
+    assertThat(inf.waitingForThemeSelection).isFalse();
+  }
+
+  @Test
   @DisplayName("lvlup bumps currentLevelId, resets taskProgress, and syncs lvl")
   void lvlupSyncs() {
     publishLevels(makeLevel("forest", 0), makeLevel("desert", 1));
